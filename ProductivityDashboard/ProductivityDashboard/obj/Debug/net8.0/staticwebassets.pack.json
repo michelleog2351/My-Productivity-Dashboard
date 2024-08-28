@@ -1,0 +1,41 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\ProductivityDashboard.bundle.scp.css",
+      "PackagePath": "staticwebassets\\ProductivityDashboard.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.ProductivityDashboard.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.ProductivityDashboard.props",
+      "PackagePath": "build\\ProductivityDashboard.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.ProductivityDashboard.props",
+      "PackagePath": "buildMultiTargeting\\ProductivityDashboard.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.ProductivityDashboard.props",
+      "PackagePath": "buildTransitive\\ProductivityDashboard.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
