@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\oguna\\source\\repos\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj": {}
+    "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj": {}
   },
   "projects": {
-    "C:\\Users\\oguna\\source\\repos\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj": {
+    "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\oguna\\source\\repos\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj",
+        "projectUniqueName": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj",
         "projectName": "ProductivityDashboard",
-        "projectPath": "C:\\Users\\oguna\\source\\repos\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj",
+        "projectPath": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\ProductivityDashboard.csproj",
         "packagesPath": "C:\\Users\\oguna\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\oguna\\source\\repos\\ProductivityDashboard\\ProductivityDashboard\\obj\\",
+        "outputPath": "C:\\Users\\oguna\\OneDrive\\Desktop\\My-Productivity-Dashboard\\ProductivityDashboard\\ProductivityDashboard\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
