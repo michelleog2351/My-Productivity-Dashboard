@@ -5,43 +5,132 @@
 
 <h1><strong>Dashboard</strong></h1>
 <h3 style="color: grey;">Today, @CurrentDateTime</h3>
+<h4>Tasks Completed: @tasksBusiness.GetCompletedTaskCount()</h4>
 
-<p role="status">Current count: @currentCount</p>
+@* <p role="status">Current count: @currentCount</p>
+ *@
+@* <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+ *@
+<div class="task-list">
+    <h4>Tasks</h4>
+    <ul>
+        @foreach (var task in tasksBusiness.GetTasks())
+        {
+            <li>
+                 @if (task.Id == editTaskId)
+                {
+                    <input type="text" @bind="editTaskTitle" />
+                    <input type="text" @bind="editTaskDescription" />
+                    <button class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                    <button class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                }
+                else
+                {
+                    <input type="checkbox" @bind="task.IsCompleted" /> @task.Title
+                    @if (task.IsCompleted)
+                    {
+                        <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy") ?? "N/A")</span>
+                    }
+                    <button class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                    <button class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                }
+            </li>
+        }
+    </ul>
+</div>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<div class="add-task">
+    <h4>Add New Task</h4>
+    <input type="text" placeholder="Title" @bind="newTaskTitle" />
+    <input type="text" placeholder="Description" @bind="newTaskDescription" />
+    <button class="btn btn-primary" @onclick="AddTask">Add Task</button>
+</div>
 
 @code {
     private int currentCount = 0;
+    private string newTaskTitle = string.Empty;
+    private string newTaskDescription = string.Empty;
+
+    // Edit Task variables
+    private int editTaskId = -1; // used to track which task is being eidted
+    private string editTaskTitle = string.Empty;
+    private string editTaskDescription = string.Empty;
+
+    private TasksBusiness tasksBusiness = new(); // Create a new instance
+
     private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
-    private void IncrementCount()
+    protected override void OnInitialized()
     {
-        currentCount++;
+        var timer = new System.Timers.Timer(1000); // 1 second interval
+        timer.Elapsed += UpdateTime;
+        timer.Start();
+    }
+
+    private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged); // Force the component to re-render
+
+    // private void IncrementCount()
+    // {
+    //     currentCount++;
+    // }
+
+    private void AddTask()
+    {
+        tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
+        newTaskTitle = string.Empty;
+        newTaskDescription = string.Empty;
+    }
+
+    private void StartEditTask(int id, string title, string description)
+    {
+        editTaskId = id;
+        editTaskTitle = title;
+        editTaskDescription = description;
+    }
+
+    private void SaveTaskEdit()
+    {
+        tasksBusiness.EditTask(editTaskId, editTaskTitle, editTaskDescription);
+        CancelEdit(); // Clear edit state after saving, resetting Edit mode
+    }
+
+    private void CancelEdit()
+    {
+        editTaskId = -1;
+        editTaskTitle = "";
+        editTaskDescription = "";
+    }
+
+    private void DeleteTask(int id)
+    {
+        tasksBusiness.DeleteTask(id);
+    }
+
+    private void MarkTaskCompleted(int id)
+    {
+        tasksBusiness.MarkTaskCompleted(id);
     }
 
     // Create Task Model
     public class TaskItem
     {
         public int Id { get; set; }
-        public string Title? { get; set; }
-        public string Description { get; set; }
-        public string Description { get; set; }
+        public string Title { get; set; } = string.Empty; // Initialize to an empty string to avoid nulls
+        public string Description { get; set; } = string.Empty; // Initialize to an empty string to avoid nulls
         public bool IsCompleted { get; set; } = false;
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime? CreatedDate { get; set; } = DateTime.Now;
         public DateTime? CompletedDate { get; set; }
     }
 
-    public class TaskService
+
+    public class TasksBusiness
     {
-        private List<TaskItem> tasks = new();
+        private List<TaskItem> tasks = new();   
         private int nextId = 1;
 
         public List<TaskItem> GetTasks() => tasks;
 
-        public void AddTask(string title, string description)
-        {
-            tasks.Add(new TaskItem { Id = nextId++, Title = title, Description = description });
-        }
+        public void AddTask(string title, string description) => tasks.Add(new TaskItem { Id = nextId++, Title = title, Description = description });
 
         public void EditTask(int id, string title, string description)
         {
