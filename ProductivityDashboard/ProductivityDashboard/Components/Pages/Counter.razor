@@ -5,7 +5,7 @@
 
 <h1><strong>Dashboard</strong></h1>
 <h3 style="color: grey;">Today, @CurrentDateTime</h3>
-<h4>Tasks Completed: @tasksBusiness.GetCompletedTaskCount()</h4>
+<h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount()</h1>
 
 @* <p role="status">Current count: @currentCount</p>
  *@
@@ -19,10 +19,18 @@
             <li>
                  @if (task.Id == editTaskId)
                 {
-                    <input type="text" @bind="editTaskTitle" />
-                    <input type="text" @bind="editTaskDescription" />
-                    <button class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                    <button class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                    <form class="form-inline">
+                        <div class="form-group mr-2">
+                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" />
+                        </div>
+
+                        <div class="form-group">
+                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" />
+                        </div>
+
+                            <button class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                            <button class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                    </form>
                 }
                 else
                 {
@@ -41,13 +49,19 @@
 
 <div class="add-task">
     <h4>Add New Task</h4>
-    <input type="text" placeholder="Title" @bind="newTaskTitle" />
-    <input type="text" placeholder="Description" @bind="newTaskDescription" />
+    <form class="form-inline">
+        <div class="form-group mr-2">
+            <input type="text" class="form-control" placeholder="Title*" @bind="newTaskTitle" />
+        </div>
+
+        <div class="form-group">
+            <textarea class="form-control" placeholder="Description (optional)" @bind="newTaskDescription" />
+        </div>
+    </form>
     <button class="btn btn-primary" @onclick="AddTask">Add Task</button>
 </div>
 
 @code {
-    private int currentCount = 0;
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
 
