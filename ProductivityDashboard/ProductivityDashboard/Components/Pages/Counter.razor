@@ -5,7 +5,45 @@
 
 <h1><strong>Dashboard</strong></h1>
 <h3 style="color: grey;">Today, @CurrentDateTime</h3>
-<h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount()</h1>
+<style>
+    .circular-progress{
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: conic-gradient(#4caf50 75%, #e0e0e0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        color: #4caf50;
+        position: relative;
+
+    }
+
+    .circular-progress::before{
+        content: '';
+        width: 100px;
+        height: 100px;
+        background-color: #fff;
+        border-radius: 50%;
+        position: absolute;
+        z-index: 1;
+    }
+
+    .progress-value{
+        z-index: 2;
+    }
+</style>
+
+
+<h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount() of @taskGoal tasks completed</h1>
+
+
+<div class="set-task-goal mb-3">
+    <label for="taskGoal">So, how many tasks do you aim to complete today?</label>
+    <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
+</div>
 
 @* <p role="status">Current count: @currentCount</p>
  *@
@@ -51,19 +89,26 @@
     <h4>Add New Task</h4>
     <form class="form-inline">
         <div class="form-group mr-2">
-            <input type="text" class="form-control" placeholder="Title*" @bind="newTaskTitle" />
+            <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" />
         </div>
 
         <div class="form-group">
-            <textarea class="form-control" placeholder="Description (optional)" @bind="newTaskDescription" />
+            <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" />
         </div>
     </form>
-    <button class="btn btn-primary" @onclick="AddTask">Add Task</button>
+    <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
 </div>
 
+<div class="circular-progress" role="progressbar" aria-label="Total task progress" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+    <span class="progress-value">5%</span>
+</div>
+
+
 @code {
+    private int taskGoal = 0;  // Variable to store the user's goal
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
+    private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
 
     // Edit Task variables
     private int editTaskId = -1; // used to track which task is being eidted
@@ -90,9 +135,12 @@
 
     private void AddTask()
     {
-        tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
-        newTaskTitle = string.Empty;
-        newTaskDescription = string.Empty;
+        if(!string.IsNullOrWhiteSpace(newTaskTitle))
+        {
+            tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
+            newTaskTitle = string.Empty;
+            newTaskDescription = string.Empty;
+        }
     }
 
     private void StartEditTask(int id, string title, string description)
