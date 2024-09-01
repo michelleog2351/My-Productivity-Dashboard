@@ -10,7 +10,7 @@
         width: 150px;
         height: 150px;
         border-radius: 50%;
-        background: conic-gradient( transparent @progressPercentage%, #e0e0e0 @progressPercentage% 100% );
+        background: conic-gradient( #4caf50 @progressPercentage%, #e0e0e0 @progressPercentage% 100% );
         display: flex;
         align-items: center;
         justify-content: center;
@@ -20,6 +20,7 @@
         position: relative;
         margin: 20px auto;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transition: background 0.5s ease-in-out; /* Smooth transition */
     }
 
         .circular-progress::before {
@@ -43,6 +44,10 @@
 
 <h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount() of @taskGoal tasks completed</h1>
 
+<div class="circular-progress" role="progressbar" aria-label="Total task progress"
+     style="background: @GetProgressGradient();">
+    <span class="progress-value">@GetProgressText()</span>
+</div>
 
 <div class="set-task-goal mb-3">
     <label for="taskGoal">So, how many tasks do you aim to complete today?</label>
@@ -63,11 +68,11 @@
                 {
                     <form class="form-inline">
                         <div class="form-group mr-2">
-                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" />
+                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
                         </div>
 
                         <div class="form-group">
-                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" />
+                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
                         </div>
 
                             <button class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
@@ -93,19 +98,14 @@
     <h4>Add New Task</h4>
     <form class="form-inline">
         <div class="form-group mr-2">
-            <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" />
+            <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
         </div>
 
         <div class="form-group">
-            <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" />
+            <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
         </div>
     </form>
     <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
-</div>
-
-<div class="circular-progress" role="progressbar" aria-label="Total task progress"
-     style="background: @GetProgressGradient();">
-    <span class="progress-value">@progressText</span>
 </div>
 
 
@@ -115,6 +115,7 @@
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
     private string progressGradient => GetProgressGradient();
+    private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
 
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
@@ -129,14 +130,21 @@
 
     private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
+    // protected override void OnInitialized()
+    // {
+    //     var timer = new System.Timers.Timer(1000); // 1 second interval
+    //     timer.Elapsed += UpdateTime;
+    //     timer.Start();
+    // }
+
     protected override void OnInitialized()
     {
-        var timer = new System.Timers.Timer(1000); // 1 second interval
-        timer.Elapsed += UpdateTime;
+        var timer = new System.Timers.Timer(1000); // Set the timer to update every 1 second
+        timer.Elapsed += UpdateTime; // This will pass both sender and ElapsedEventArgs to the method
         timer.Start();
     }
 
-    private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged); // Force the component to re-render
+    private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
 
     // private void IncrementCount()
     // {
@@ -155,14 +163,9 @@
 
     private string GetProgressText()
     {
-        int completedTasks = tasksBusiness.GetCompletedTaskCount();
-
-        if(completedTasks >= taskGoal)
-        {
-            return "Well done! You have completed all of today's tasks!";
-        }
-
-        return $"{completedTasks} of {taskGoal}";
+        return completedTasks >= taskGoal
+            ? "Well done! You have completed all of today's tasks!"
+            : $"{completedTasks} of {taskGoal}";
     }
 
     private double GetProgressPercentage()
@@ -171,35 +174,51 @@
         return taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
     }
 
+    // Get the progress percentage and update the gradient background
     private string GetProgressGradient()
     {
-        int completedTasks = tasksBusiness.GetCompletedTaskCount();
-        var segments = new List<string>();
-        double segmentSize = 100.0 / taskGoal; // Size of each segment
-        double gapSize = segmentSize * 0.15;  // Gaps are 15% of the segment size
-        double progressSize = segmentSize - gapSize;
-
-        for (int i = 0; i < taskGoal; i++)
-        {
-            double start = i * segmentSize;
-            double end = start + progressSize;
-
-            if (i < completedTasks)
-            {
-                // If task is completed, show the progress color
-                segments.Add($"#4caf50 {start}% {end}%");
-            }
-            else
-            {
-                // If task is not completed, show the background color
-                segments.Add($"transparent {start}% {end}%");
-            }
-            // Always add a gap after each segment
-            segments.Add($"#fff {end}% {end + gapSize}%");
-        }
-
-        return $"conic-gradient({string.Join(", ", segments)})";
+        double progressPercentage = taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
+        //StateHasChanged(); // Force re-render to apply the CSS transition
+        return $"conic-gradient(#4caf50 0% {progressPercentage}%, #e0e0e0 {progressPercentage}% 100%)";
     }
+
+    private string GetEndOffset()
+    {
+        double completedPercentage = (completedTasks / (double)taskGoal) * 100.0;
+        double radians = completedPercentage * 3.6 * (Math.PI / 180.0); // Convert percentage to radians
+        double radius = 75.0; // Half of the progress bar size
+        double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
+        return $"{offset}px"; // Return as CSS-compatible string
+    }
+    // private string GetProgressGradient()
+    // {
+    //     int completedTasks = tasksBusiness.GetCompletedTaskCount();
+    //     var segments = new List<string>();
+    //     double segmentSize = 100.0 / taskGoal; // Size of each segment
+    //     double gapSize = segmentSize * 0.15;  // Gaps are 15% of the segment size
+    //     double progressSize = segmentSize - gapSize;
+
+    //     for (int i = 0; i < taskGoal; i++)
+    //     {
+    //         double start = i * segmentSize;
+    //         double end = start + progressSize;
+
+    //         if (i < completedTasks)
+    //         {
+    //             // If task is completed, show the progress color
+    //             segments.Add($"#4caf50 {start}% {end}%");
+    //         }
+    //         else
+    //         {
+    //             // If task is not completed, show the background color
+    //             segments.Add($"transparent {start}% {end}%");
+    //         }
+    //         // Always add a gap after each segment
+    //         segments.Add($"#fff {end}% {end + gapSize}%");
+    //     }
+
+    //     return $"conic-gradient({string.Join(", ", segments)})";
+    // }
 
     private void StartEditTask(int id, string title, string description)
     {

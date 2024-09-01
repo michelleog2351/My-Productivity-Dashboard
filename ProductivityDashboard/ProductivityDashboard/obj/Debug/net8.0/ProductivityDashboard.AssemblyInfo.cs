@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProductivityDashboard")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9537876af2e21d433bffe7f9d2a15d0256f4208c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd32e8c5b06928633647854d2fea8eb6186e4e25")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProductivityDashboard")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProductivityDashboard")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
