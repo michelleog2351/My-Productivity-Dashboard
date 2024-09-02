@@ -7,15 +7,16 @@
 <h3 style="color: grey;">Today, @CurrentDateTime</h3>
 <style>
     .circular-progress {
-        width: 150px;
-        height: 150px;
+        width: 220px;
+        height: 220px;
         border-radius: 50%;
         background: conic-gradient( #4caf50 @progressPercentage%, #e0e0e0 @progressPercentage% 100% );
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 14px;
         font-weight: bold;
+        text-align: center;
         color: #4caf50;
         position: relative;
         margin: 20px auto;
@@ -25,8 +26,8 @@
 
         .circular-progress::before {
             content: '';
-            width: 110px;
-            height: 110px;
+            width: 140px;
+            height: 140px;
             background-color: #fff; /* Match this with the page background color */
             border-radius: 50%;
             position: absolute;
@@ -42,8 +43,8 @@
 </style>
 
 
-<h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount() of @taskGoal tasks completed</h1>
-
+@* <h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount() of @taskGoal tasks completed</h1>
+ *@
 <div class="circular-progress" role="progressbar" aria-label="Total task progress"
      style="background: @GetProgressGradient();">
     <span class="progress-value">@GetProgressText()</span>
@@ -75,19 +76,23 @@
                             <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
                         </div>
 
-                            <button class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                            <button class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                        <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                        <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
                     </form>
                 }
                 else
                 {
                     <input type="checkbox" @bind="task.IsCompleted" /> @task.Title
-                    @if (task.IsCompleted)
+                    @if (task.IsCompleted && task.CompletedDate != null)
                     {
                         <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy") ?? "N/A")</span>
                     }
-                    <button class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
-                    <button class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                    else
+                    {
+                        <span>(Not Completed)</span>
+                    }
+                    <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                    <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
                 }
             </li>
         }
@@ -164,8 +169,8 @@
     private string GetProgressText()
     {
         return completedTasks >= taskGoal
-            ? "Well done! You have completed all of today's tasks!"
-            : $"{completedTasks} of {taskGoal}";
+            ? "Well done! \n You have completed all of today's tasks!"
+            : $"{completedTasks} of {taskGoal} tasks completed";
     }
 
     private double GetProgressPercentage()
@@ -190,36 +195,7 @@
         double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
         return $"{offset}px"; // Return as CSS-compatible string
     }
-    // private string GetProgressGradient()
-    // {
-    //     int completedTasks = tasksBusiness.GetCompletedTaskCount();
-    //     var segments = new List<string>();
-    //     double segmentSize = 100.0 / taskGoal; // Size of each segment
-    //     double gapSize = segmentSize * 0.15;  // Gaps are 15% of the segment size
-    //     double progressSize = segmentSize - gapSize;
-
-    //     for (int i = 0; i < taskGoal; i++)
-    //     {
-    //         double start = i * segmentSize;
-    //         double end = start + progressSize;
-
-    //         if (i < completedTasks)
-    //         {
-    //             // If task is completed, show the progress color
-    //             segments.Add($"#4caf50 {start}% {end}%");
-    //         }
-    //         else
-    //         {
-    //             // If task is not completed, show the background color
-    //             segments.Add($"transparent {start}% {end}%");
-    //         }
-    //         // Always add a gap after each segment
-    //         segments.Add($"#fff {end}% {end + gapSize}%");
-    //     }
-
-    //     return $"conic-gradient({string.Join(", ", segments)})";
-    // }
-
+   
     private void StartEditTask(int id, string title, string description)
     {
         editTaskId = id;
@@ -258,7 +234,7 @@
         public string Description { get; set; } = string.Empty; // Initialize to an empty string to avoid nulls
         public bool IsCompleted { get; set; } = false;
         public DateTime? CreatedDate { get; set; } = DateTime.Now;
-        public DateTime? CompletedDate { get; set; }
+        public DateTime? CompletedDate { get; set; } 
     }
 
 
@@ -293,7 +269,7 @@
         public void MarkTaskCompleted(int id)
         {
             var task = tasks.FirstOrDefault(t => t.Id == id);
-            if (task != null)
+            if (task != null && !task.IsCompleted)
             {
                 task.IsCompleted = true;
                 task.CompletedDate = DateTime.Now;
