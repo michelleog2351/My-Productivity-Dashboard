@@ -6,6 +6,13 @@
 <h1><strong>Dashboard</strong></h1>
 <h3 style="color: grey;">Today, @CurrentDateTime</h3>
 <style>
+    .circular-progress-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
     .circular-progress {
         width: 220px;
         height: 220px;
@@ -14,14 +21,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
-        font-weight: bold;
-        text-align: center;
-        color: #4caf50;
         position: relative;
         margin: 20px auto;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        transition: background 0.5s ease-in-out; /* Smooth transition */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Slight offset, darker shadow */
+        transition: background 3s ease-in-out;
     }
 
         .circular-progress::before {
@@ -34,31 +37,43 @@
             z-index: 1;
         }
 
-    .progress-value {
+    .progress-percent {
         z-index: 2;
-        text-align: center;
+        font-family: Tahoma;
+        font-size: 20px;
+        font-weight: bold;
         color: #000;
+    }
+
+    .progress-text {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #4caf50;
     }
 
 </style>
 
+<div class="circular-progress-wrapper">
+    <h2><strong>My Task Progress</strong></h2>
+    <div class="circular-progress" role="progressbar" 
+    aria-label="Total task progress" 
+    aria-valuemin="0" 
+    aria-valuemax="100"
+         title="@GetProgressText()">
 
-@* <h1>Tasks Completed: @tasksBusiness.GetCompletedTaskCount() of @taskGoal tasks completed</h1>
- *@
-<div class="circular-progress" role="progressbar" aria-label="Total task progress"
-     style="background: @GetProgressGradient();">
-    <span class="progress-value">@GetProgressText()</span>
+        <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
+    </div>
+    <span class="progress-text">@GetProgressText()</span>
 </div>
+
 
 <div class="set-task-goal mb-3">
     <label for="taskGoal">So, how many tasks do you aim to complete today?</label>
     <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
 </div>
 
-@* <p role="status">Current count: @currentCount</p>
- *@
-@* <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
- *@
 <div class="task-list">
     <h4>Tasks</h4>
     <ul>
@@ -82,17 +97,15 @@
                 }
                 else
                 {
-                    <input type="checkbox" @bind="task.IsCompleted" /> @task.Title
+                    <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
                     @if (task.IsCompleted && task.CompletedDate != null)
                     {
-                        <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy") ?? "N/A")</span>
+                        <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
                     }
-                    else
-                    {
-                        <span>(Not Completed)</span>
-                    }
+                    <div>
                     <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
                     <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                    </div>
                 }
             </li>
         }
@@ -119,7 +132,7 @@
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
-    private string progressGradient => GetProgressGradient();
+  //  private string progressGradient => GetProgressGradient();
     private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
 
     private string newTaskTitle = string.Empty;
@@ -151,11 +164,6 @@
 
     private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
 
-    // private void IncrementCount()
-    // {
-    //     currentCount++;
-    // }
-
     private void AddTask()
     {
         if(!string.IsNullOrWhiteSpace(newTaskTitle))
@@ -180,12 +188,12 @@
     }
 
     // Get the progress percentage and update the gradient background
-    private string GetProgressGradient()
-    {
-        double progressPercentage = taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
-        //StateHasChanged(); // Force re-render to apply the CSS transition
-        return $"conic-gradient(#4caf50 0% {progressPercentage}%, #e0e0e0 {progressPercentage}% 100%)";
-    }
+    // private string GetProgressGradient()
+    // {
+    //     double progressPercentage = taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
+    //     //StateHasChanged(); // Force re-render to apply the CSS transition
+    //     return $"conic-gradient(#4caf50 0% {progressPercentage}%, #e0e0e0 {progressPercentage}% 100%)";
+    // }
 
     private string GetEndOffset()
     {
@@ -195,7 +203,7 @@
         double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
         return $"{offset}px"; // Return as CSS-compatible string
     }
-   
+
     private void StartEditTask(int id, string title, string description)
     {
         editTaskId = id;
@@ -269,10 +277,10 @@
         public void MarkTaskCompleted(int id)
         {
             var task = tasks.FirstOrDefault(t => t.Id == id);
-            if (task != null && !task.IsCompleted)
+            if (task != null)
             {
-                task.IsCompleted = true;
-                task.CompletedDate = DateTime.Now;
+                task.IsCompleted = !task.IsCompleted;
+                task.CompletedDate = task.IsCompleted ? DateTime.Now : null;
             }
         }
 
