@@ -53,6 +53,17 @@
         color: #4caf50;
     }
 
+    .add-view-tasks-btn{
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for the effects */
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    
+        .add-view-tasks-btn:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            transform: scale(1.1); /* Slightly increase the size */
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
+        }
 </style>
 
 <div class="circular-progress-wrapper">
@@ -66,69 +77,74 @@
         <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
     </div>
     <span class="progress-text">@GetProgressText()</span>
+
+    @* Button to reveal tasks section *@
+    <button class="btn btn-primary add-view-tasks-btn" type="button" @onclick="ShowTaskSection"><strong>Add & View My Tasks</strong></button>
 </div>
 
-
-<div class="set-task-goal mb-3">
-    <label for="taskGoal">So, how many tasks do you aim to complete today?</label>
-    <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
-</div>
-
-<div class="task-list">
-    <h4>Tasks</h4>
-    <ul>
-        @foreach (var task in tasksBusiness.GetTasks())
-        {
-            <li>
-                 @if (task.Id == editTaskId)
-                {
-                    <form class="form-inline">
-                        <div class="form-group mr-2">
-                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
-                        </div>
-
-                        <div class="form-group">
-                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
-                        </div>
-
-                        <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                        <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
-                    </form>
-                }
-                else
-                {
-                    <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
-                    @if (task.IsCompleted && task.CompletedDate != null)
-                    {
-                        <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
-                    }
-                    <div>
-                    <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
-                    <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
-                    </div>
-                }
-            </li>
-        }
-    </ul>
-</div>
-
-<div class="add-task">
-    <h4>Add New Task</h4>
-    <form class="form-inline">
-        <div class="form-group mr-2">
-            <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
+@if (isTaskSectionVisible)
+{
+    <div class="tasks-section">
+        <div class="set-task-goal mb-3">
+            <label for="taskGoal"><strong>So, how many tasks do you aim to complete today?</strong></label>
+            <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
         </div>
 
-        <div class="form-group">
-            <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
+        <div class="task-list">
+            <ul>
+                @foreach (var task in tasksBusiness.GetTasks())
+                {
+                    <li>
+                         @if (task.Id == editTaskId)
+                        {
+                            <form class="form-inline">
+                                <div class="form-group mr-2">
+                                    <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
+                                </div>
+
+                                <div class="form-group">
+                                    <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
+                                </div>
+
+                                <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                                <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
+                            @if (task.IsCompleted && task.CompletedDate != null)
+                            {
+                                <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
+                            }
+                            <div>
+                            <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                            <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
         </div>
-    </form>
-    <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
-</div>
 
+        <div class="add-task">
+            <h4>Add New Task</h4>
+            <form class="form-inline">
+                <div class="form-group mr-2">
+                    <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
+                </div>
 
+                <div class="form-group">
+                    <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
+                </div>
+            </form>
+            <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
+        </div>
+    </div>
+}
 
 @code {
+    private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
@@ -202,6 +218,11 @@
         double radius = 75.0; // Half of the progress bar size
         double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
         return $"{offset}px"; // Return as CSS-compatible string
+    }
+
+    private void ShowTaskSection()
+    {
+        isTaskSectionVisible = !isTaskSectionVisible;
     }
 
     private void StartEditTask(int id, string title, string description)
