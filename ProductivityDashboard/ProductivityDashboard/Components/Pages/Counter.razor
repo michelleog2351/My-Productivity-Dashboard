@@ -138,6 +138,17 @@
                     <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
                 </div>
             </form>
+            @* <span class="notification text-danger"
+                  style="display:@(showNotification ? "block" : "none") margin-bottom: 15px;">
+                <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks.
+            </span>
+            <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks. *@
+
+            <div class="notification" style="color:red; margin-bottom: 15px; display:@(showNotification ? "block" : "none");">
+                <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
+            </div>
+
+
             <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
         </div>
     </div>
@@ -154,6 +165,7 @@
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
     private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
+    private bool showNotification = false;
 
     // Edit Task variables
     private int editTaskId = -1; // used to track which task is being eidted
@@ -182,13 +194,22 @@
 
     private void AddTask()
     {
-        if(!string.IsNullOrWhiteSpace(newTaskTitle))
+        if (tasksBusiness.GetTasks().Count >= taskGoal)
+        {
+            // Show notification when trying to add more tasks than the goal
+            showNotification = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(newTaskTitle))
         {
             tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
             newTaskTitle = string.Empty;
             newTaskDescription = string.Empty;
+
+            // Hide notification if task is successfully added
+            showNotification = false;
         }
     }
+
 
     private string GetProgressText()
     {
