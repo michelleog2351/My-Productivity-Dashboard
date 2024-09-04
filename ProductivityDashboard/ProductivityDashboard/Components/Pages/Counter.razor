@@ -3,8 +3,6 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<h1><strong>Dashboard</strong></h1>
-<h3 style="color: grey;">Today, @CurrentDateTime</h3>
 <style>
     .circular-progress-wrapper {
         display: flex;
@@ -65,96 +63,111 @@
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
         }
 </style>
-
-<div class="circular-progress-wrapper">
-    <h2><strong>My Task Progress</strong></h2>
-    <div class="circular-progress" role="progressbar" 
-    aria-label="Total task progress" 
-    aria-valuemin="0" 
-    aria-valuemax="100"
-         title="@GetProgressText()">
-
-        <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
-    </div>
-    <span class="progress-text">@GetProgressText()</span>
-
-    @* Button to reveal tasks section *@
-    <button class="btn btn-primary add-view-tasks-btn" type="button" @onclick="ShowTaskSection"><strong>Add & View My Tasks</strong></button>
-</div>
-
-@if (isTaskSectionVisible)
+@if(!hasEnteredName)
 {
-    <div class="tasks-section">
-        <div class="set-task-goal mb-3">
-            <label for="taskGoal"><strong>So, how many tasks do you aim to complete today?</strong></label>
-            <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
-        </div>
-
-        <div class="task-list">
-            <ul>
-                @foreach (var task in tasksBusiness.GetTasks())
-                {
-                    <li>
-                         @if (task.Id == editTaskId)
-                        {
-                            <form class="form-inline">
-                                <div class="form-group mr-2">
-                                    <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
-                                </div>
-
-                                <div class="form-group">
-                                    <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
-                                </div>
-
-                                <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                                <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
-                            @if (task.IsCompleted && task.CompletedDate != null)
-                            {
-                                <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
-                            }
-                            <div>
-                            <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
-                            <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
-                            </div>
-                        }
-                    </li>
-                }
-            </ul>
-        </div>
-
-        <div class="add-task">
-            <h4>Add New Task</h4>
-            <form class="form-inline">
-                <div class="form-group mr-2">
-                    <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
-                </div>
-
-                <div class="form-group">
-                    <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
-                </div>
-            </form>
-            @* <span class="notification text-danger"
-                  style="display:@(showNotification ? "block" : "none") margin-bottom: 15px;">
-                <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks.
-            </span>
-            <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks. *@
-
-            <div class="notification" style="color:red; margin-bottom: 15px; display:@(showNotification ? "block" : "none");">
-                <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
-            </div>
-
-
-            <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
-        </div>
+    <div class="welcome-to-dashboard">
+        <h1><strong>Welcome! Please enter your name to proceed to your productivity dashboard :)</strong></h1>
+        <input type="text" @bind="userName" placeholder="Your Name" />
+        <button class="btn btn-primary" @onclick="SubmitName">Submit</button>
     </div>
 }
 
+else{
+    <h1><strong>Dashboard</strong></h1>
+        <h2>Hello, @userName! Welcome to your dashboard.</h2>
+    <h3 style="color: grey;">Today, @CurrentDateTime</h3>
+
+    <div class="circular-progress-wrapper">
+        <h2><strong>My Task Progress</strong></h2>
+        <div class="circular-progress" role="progressbar" 
+        aria-label="Total task progress" 
+        aria-valuemin="0" 
+        aria-valuemax="100"
+             title="@GetProgressText()">
+
+            <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
+        </div>
+        <span class="progress-text">@GetProgressText()</span>
+
+        @* Button to reveal tasks section *@
+        <button class="btn btn-primary add-view-tasks-btn" type="button" @onclick="ShowTaskSection"><strong>Add & View My Tasks</strong></button>
+    </div>
+
+    @if (isTaskSectionVisible)
+    {
+        <div class="tasks-section">
+            <div class="set-task-goal mb-3">
+                <label for="taskGoal"><strong>So, how many tasks do you aim to complete today?</strong></label>
+                <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
+            </div>
+
+            <div class="task-list">
+                <ul>
+                    @foreach (var task in tasksBusiness.GetTasks())
+                    {
+                        <li>
+                             @if (task.Id == editTaskId)
+                            {
+                                <form class="form-inline">
+                                    <div class="form-group mr-2">
+                                        <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
+                                    </div>
+
+                                    <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                                    <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
+                                @if (task.IsCompleted && task.CompletedDate != null)
+                                {
+                                    <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
+                                }
+                                <div>
+                                <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                                <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                                </div>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="add-task">
+                <h4>Add New Task</h4>
+                <form class="form-inline">
+                    <div class="form-group mr-2">
+                        <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
+                    </div>
+
+                    <div class="form-group">
+                        <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
+                    </div>
+                </form>
+                @* <span class="notification text-danger"
+                      style="display:@(showNotification ? "block" : "none") margin-bottom: 15px;">
+                    <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks.
+                </span>
+                <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks. *@
+
+                <div class="notification" style="color:red; margin-bottom: 15px; display:@(showNotification ? "block" : "none");">
+                    <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
+                </div>
+
+
+                <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
+            </div>
+        </div>
+    }
+}
 @code {
+    private bool hasEnteredName = false; // Set to track if the user has entered in their name
+    private string userName = ""; 
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
@@ -176,12 +189,13 @@
 
     private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
-    // protected override void OnInitialized()
-    // {
-    //     var timer = new System.Timers.Timer(1000); // 1 second interval
-    //     timer.Elapsed += UpdateTime;
-    //     timer.Start();
-    // }
+    private void SubmitName()
+    {
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            hasEnteredName = true; // Set to true to reveal the dashboard
+        }
+    }
 
     protected override void OnInitialized()
     {
