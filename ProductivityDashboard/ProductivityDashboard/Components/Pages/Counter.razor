@@ -4,6 +4,42 @@
 <PageTitle>Dashboard</PageTitle>
 
 <style>
+    .welcome-to-dashboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh; /* Center content vertically and horizontally */
+        text-align: center; /* Center the text */
+    }
+
+    .name-input {
+        margin-top: 10px;
+        margin-bottom: 20px;
+        width: 300px; /* Adjust width as needed */
+        text-align: center; /* Center the text within the input */
+    }
+
+    .submit-name-btn {
+        display: inline-flex; /* Use inline-flex for better control of button size and position */
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 50%;
+        height: 45px;
+        width: 45px;
+        margin-top: 10px; /* Ensure some spacing from the input */
+        text-align: center;
+        line-height: 1; /* Vertically center text inside the button */
+    }
+
+        .submit-name-btn:hover {
+            background-color: #292; /* Change to a darker green on hover */
+            transform: scale(1.1);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+
     .circular-progress-wrapper {
         display: flex;
         flex-direction: column;
@@ -66,15 +102,20 @@
 @if(!hasEnteredName)
 {
     <div class="welcome-to-dashboard">
-        <h1><strong>Welcome! Please enter your name to proceed to your productivity dashboard :)</strong></h1>
-        <input type="text" @bind="userName" placeholder="Your Name" />
-        <button class="btn btn-primary" @onclick="SubmitName">Submit</button>
+        <h1 style=" font-family: 'Lucida Handwriting">Welcome to my Productivity Dashboard!</h1>
+@*         <h5>Please enter your name to proceed to your productivity dashboard :)</h5>
+ *@        <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." autocomplete="on" />
+            <button class="btn btn-success submit-name-btn" @onclick="SubmitName"><strong>Go!</strong></button>
+
+            <div class="notification" style="color:red; margin-top: 15px; display:@(nameAlert ? "block" : "none");">
+                    <strong>Note:</strong> Please enter your name to proceed!
+            </div>
     </div>
 }
 
 else{
     <h1><strong>Dashboard</strong></h1>
-        <h2>Hello, @userName! Welcome to your dashboard.</h2>
+        <h2>Hi, @userName what's the plan today?!</h2>
     <h3 style="color: grey;">Today, @CurrentDateTime</h3>
 
     <div class="circular-progress-wrapper">
@@ -155,7 +196,7 @@ else{
                 </span>
                 <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks. *@
 
-                <div class="notification" style="color:red; margin-bottom: 15px; display:@(showNotification ? "block" : "none");">
+                <div class="notification" style="color:red; margin-bottom: 15px; display:@(tasksLimitAlert ? "block" : "none");">
                     <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
                 </div>
 
@@ -167,7 +208,9 @@ else{
 }
 @code {
     private bool hasEnteredName = false; // Set to track if the user has entered in their name
-    private string userName = ""; 
+    private string userName = "";
+    private bool nameAlert = false;
+
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
@@ -178,7 +221,7 @@ else{
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
     private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
-    private bool showNotification = false;
+    private bool tasksLimitAlert = false;
 
     // Edit Task variables
     private int editTaskId = -1; // used to track which task is being eidted
@@ -194,6 +237,11 @@ else{
         if (!string.IsNullOrWhiteSpace(userName))
         {
             hasEnteredName = true; // Set to true to reveal the dashboard
+            nameAlert = true; // Show the alert if the name is empty
+        }
+        else
+        {
+            nameAlert = true; // Show alert if name is not entered
         }
     }
 
@@ -211,7 +259,7 @@ else{
         if (tasksBusiness.GetTasks().Count >= taskGoal)
         {
             // Show notification when trying to add more tasks than the goal
-            showNotification = true;
+            tasksLimitAlert = true;
         }
         else if (!string.IsNullOrWhiteSpace(newTaskTitle))
         {
@@ -220,7 +268,7 @@ else{
             newTaskDescription = string.Empty;
 
             // Hide notification if task is successfully added
-            showNotification = false;
+            tasksLimitAlert = false;
         }
     }
 
