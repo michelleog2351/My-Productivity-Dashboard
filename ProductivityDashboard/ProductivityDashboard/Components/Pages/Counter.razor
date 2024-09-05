@@ -5,6 +5,12 @@
 
 <style>
     .welcome-to-dashboard {
+        background-color: #282c34;
+        color: white;
+        /* padding: 40px; */
+        margin-bottom: 20px;
+        text-align: center;
+        border-radius: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -26,15 +32,17 @@
         justify-content: center;
         transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
         border-radius: 50%;
-        height: 45px;
-        width: 45px;
+        height: 60px;
+        width: 60px;
         margin-top: 10px; /* Ensure some spacing from the input */
         text-align: center;
         line-height: 1; /* Vertically center text inside the button */
+        border: 2px solid #3a9d23; /* Match border to initial background */
     }
 
         .submit-name-btn:hover {
-            background-color: #292; /* Change to a darker green on hover */
+            background-color: #3a9d23; /* A more vivid green */
+            color: white;
             transform: scale(1.1);
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
         }
@@ -99,13 +107,19 @@
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
         }
 </style>
-@if(!hasEnteredName)
+@if(!hasEnteredName && !isLoading)
 {
     <div class="welcome-to-dashboard">
-        <h1 style=" font-family: 'Lucida Handwriting">Welcome to my Productivity Dashboard!</h1>
+        <h1 style=" font-family: 'Lucida Handwriting'">Welcome to My Productivity Dashboard!</h1>
 @*         <h5>Please enter your name to proceed to your productivity dashboard :)</h5>
- *@        <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." autocomplete="on" />
-            <button class="btn btn-success submit-name-btn" @onclick="SubmitName"><strong>Go!</strong></button>
+ *@        <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." name="user-name" autocomplete="on" />
+            <button class="btn btn-success submit-name-btn" @onclick="async () => await SubmitName()"><strong>Go!</strong></button>
+
+        <!-- After the Go button -->
+        @if (isLoading)
+        {
+            <p style="text-align: center; color: grey;">Loading...</p>
+        }
 
             <div class="notification" style="color:red; margin-top: 15px; display:@(nameAlert ? "block" : "none");">
                     <strong>Note:</strong> Please enter your name to proceed!
@@ -114,12 +128,25 @@
 }
 
 else{
-    <h1><strong>Dashboard</strong></h1>
-        <h2>Hi, @userName what's the plan today?!</h2>
-    <h3 style="color: grey;">Today, @CurrentDateTime</h3>
+    <!-- Time at the top, smaller and aligned to the right -->
+    <div style="text-align: right; color: grey; font-size: 16px; margin-bottom: 10px;">
+        Today, @CurrentDateTime
+    </div>
 
+    <!-- Main heading -->
+    <h1 style=" font-size: 36px; margin-bottom: 5px;"><strong>My Productivity Dashboard</strong></h1>
+    <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+
+    <!-- Greeting with the user's name -->
+    <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>
+
+
+
+    <!-- Task progress section -->
     <div class="circular-progress-wrapper">
-        <h2><strong>My Task Progress</strong></h2>
+        <!-- Sub-heading for task progress, slightly smaller than the greeting -->
+        <h3 style="font-size: 22px; margin-bottom: 5px;"><strong>My Task Progress</strong></h3>
+
         <div class="circular-progress" role="progressbar" 
         aria-label="Total task progress" 
         aria-valuemin="0" 
@@ -190,16 +217,10 @@ else{
                         <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
                     </div>
                 </form>
-                @* <span class="notification text-danger"
-                      style="display:@(showNotification ? "block" : "none") margin-bottom: 15px;">
-                    <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks.
-                </span>
-                <strong>Note:</strong> You have reached your task goal! Please increase your goal if you wish to add more tasks. *@
 
                 <div class="notification" style="color:red; margin-bottom: 15px; display:@(tasksLimitAlert ? "block" : "none");">
                     <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
                 </div>
-
 
                 <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
             </div>
@@ -210,12 +231,13 @@ else{
     private bool hasEnteredName = false; // Set to track if the user has entered in their name
     private string userName = "";
     private bool nameAlert = false;
+    private bool isLoading = false;
 
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
-  //  private string progressGradient => GetProgressGradient();
+    //  private string progressGradient => GetProgressGradient();
     private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
 
     private string newTaskTitle = string.Empty;
@@ -232,11 +254,18 @@ else{
 
     private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
-    private void SubmitName()
+    private async Task SubmitName()
     {
         if (!string.IsNullOrWhiteSpace(userName))
         {
+            isLoading = true; // Show text
+            StateHasChanged();
+
+            // Simulate a delay
+            await Task.Delay(1500);
+
             hasEnteredName = true; // Set to true to reveal the dashboard
+            isLoading = false;
             nameAlert = true; // Show the alert if the name is empty
         }
         else
