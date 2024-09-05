@@ -129,8 +129,12 @@
 
 else{
     <!-- Time at the top, smaller and aligned to the right -->
-    <div style="text-align: right; color: grey; font-size: 16px; margin-bottom: 10px;">
+    <div style="text-align: right; color: grey; font-size: 16px;">
         Today, @CurrentDateTime
+        @if (result.HasValue)
+        {
+            <p class="mt-3" style="font-size: 30px">@result.Value @resultUnit.</p>
+        }
     </div>
 
     <!-- Main heading -->
@@ -140,7 +144,27 @@ else{
     <!-- Greeting with the user's name -->
     <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>
 
+    <div class="container mt-4">
+        <div class="form-group row">
+            <div class="col-md-2">
+                <input type="number" class="form-control form-control-sm" id="tempInput" @bind="temperature" placeholder="Temperature" />
+            </div>
 
+            <div class="col-md-3">
+                <select class="form-control form-control-sm" id="conversionType" @bind="conversionType">
+                    <option value="CtoF">Celsius to Fahrenheit</option>
+                    <option value="FtoC">Fahrenheit to Celsius</option>
+                </select>
+            </div>
+        </div>
+
+
+        <button class="btn btn-primary mt-3" @onclick="ConvertTemperature">Convert</button>
+       @*  @if (result.HasValue)
+        {
+            <p class="mt-3">The converted temperature is @result.Value @resultUnit.</p>
+        } *@
+    </div>
 
     <!-- Task progress section -->
     <div class="circular-progress-wrapper">
@@ -234,6 +258,12 @@ else{
     private bool isLoading = false;
 
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
+    private double temperature;
+    private double? result;
+    private string conversionType = "CtoF";
+    private string resultUnit = "Fahrenheit"; 
+    private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
+
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
@@ -251,8 +281,6 @@ else{
     private string editTaskDescription = string.Empty;
 
     private TasksBusiness tasksBusiness = new(); // Create a new instance
-
-    private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
     private async Task SubmitName()
     {
@@ -282,6 +310,20 @@ else{
     }
 
     private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private void ConvertTemperature()
+    {
+        if (conversionType == "CtoF")
+        {
+            result = (temperature * 9 / 5) + 32;
+            resultUnit = "Fahrenheit";
+        }
+        else if (conversionType == "FtoC")
+        {
+            result = (temperature - 32) * 5 / 9;
+            resultUnit = "Celsius";
+        }
+    }
 
     private void AddTask()
     {
