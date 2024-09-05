@@ -133,7 +133,7 @@ else{
         Today, @CurrentDateTime
         @if (result.HasValue)
         {
-            <p class="mt-3" style="font-size: 30px">@result.Value @resultUnit.</p>
+            <p class="mt-3" style="font-size: 40px; font-family: Verdana">@result.Value @resultUnit</p>
         }
     </div>
 
@@ -151,19 +151,19 @@ else{
             </div>
 
             <div class="col-md-3">
-                <select class="form-control form-control-sm" id="conversionType" @bind="conversionType">
+                <select class="form-control form-control-sm" id="conversionType" @onchange="ConvertTemperature">
                     <option value="CtoF">Celsius to Fahrenheit</option>
                     <option value="FtoC">Fahrenheit to Celsius</option>
                 </select>
             </div>
         </div>
 
-
-        <button class="btn btn-primary mt-3" @onclick="ConvertTemperature">Convert</button>
-       @*  @if (result.HasValue)
+        @if (result.HasValue)
         {
-            <p class="mt-3">The converted temperature is @result.Value @resultUnit.</p>
-        } *@
+            <p>The converted temperature is @result.Value @resultUnit</p>
+        }
+
+        @* <button class="btn btn-primary mt-3" @onclick="ConvertTemperature">Convert</button> *@
     </div>
 
     <!-- Task progress section -->
@@ -260,8 +260,8 @@ else{
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private double temperature;
     private double? result;
-    private string conversionType = "CtoF";
-    private string resultUnit = "Fahrenheit"; 
+    private string conversionType = "CtoF"; // Default selection
+    private string? resultUnit; 
     private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
@@ -311,17 +311,20 @@ else{
 
     private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
 
-    private void ConvertTemperature()
+    private void ConvertTemperature(ChangeEventArgs e)
     {
+        // Update the selected conversion type
+        conversionType = e.Value?.ToString() ?? string.Empty;
+
         if (conversionType == "CtoF")
         {
-            result = (temperature * 9 / 5) + 32;
-            resultUnit = "Fahrenheit";
+            result = Math.Round((temperature * 9 / 5) + 32, 2); // Round to 2 decimal places   
+            resultUnit = "°F";
         }
         else if (conversionType == "FtoC")
         {
-            result = (temperature - 32) * 5 / 9;
-            resultUnit = "Celsius";
+            result = Math.Round((temperature - 32) * 5 / 9, 2); // Round to 2 decimal places            
+            resultUnit = "°C";
         }
     }
 
