@@ -133,8 +133,29 @@ else{
         Today, @CurrentDateTime
         @if (result.HasValue)
         {
-            <p class="mt-3" style="font-size: 40px; font-family: Verdana">@result.Value @resultUnit</p>
+            <p class="mt-3" 
+               style="font-size: 40px; 
+                      font-family: Verdana;
+                      font-weight: bold;"
+               title="Please enter a temperature below">@result.Value@resultUnit</p>
         }
+
+        <div class="container mt-4">
+            <div class="d-flex justify-content-end">
+                <div class="form-group mb-0 d-flex align-items-center">
+                    <div class="me-2 col-md-4">
+                        <input type="number" class="form-control form-control-sm" id="tempInput" @oninput="(e) => UpdateTemperature(e)" placeholder="Temperature" />
+                    </div>
+                    <div class="col-md-8">
+                        <select class="form-control form-control-sm" id="conversionType" @onchange="(e) => UpdateConversionType(e)">
+                            <option value="CtoF">Celsius to Fahrenheit</option>
+                            <option value="FtoC">Fahrenheit to Celsius</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Main heading -->
@@ -144,27 +165,25 @@ else{
     <!-- Greeting with the user's name -->
     <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>
 
-    <div class="container mt-4">
+@*     <div class="container mt-4">
         <div class="form-group row">
             <div class="col-md-2">
-                <input type="number" class="form-control form-control-sm" id="tempInput" @bind="temperature" placeholder="Temperature" />
+                <input type="number" class="form-control form-control-sm" id="tempInput" @oninput="(e) => UpdateTemperature(e)" placeholder="Temperature" />
             </div>
 
             <div class="col-md-3">
-                <select class="form-control form-control-sm" id="conversionType" @onchange="ConvertTemperature">
+                <select class="form-control form-control-sm" id="conversionType" @onchange="(e) => UpdateConversionType(e)">
                     <option value="CtoF">Celsius to Fahrenheit</option>
                     <option value="FtoC">Fahrenheit to Celsius</option>
                 </select>
             </div>
-        </div>
+        </div>      
 
-        @if (result.HasValue)
+      @*   @if (result.HasValue)
         {
             <p>The converted temperature is @result.Value @resultUnit</p>
-        }
-
-        @* <button class="btn btn-primary mt-3" @onclick="ConvertTemperature">Convert</button> *@
-    </div>
+        } 
+    </div> *@
 
     <!-- Task progress section -->
     <div class="circular-progress-wrapper">
@@ -307,26 +326,42 @@ else{
         var timer = new System.Timers.Timer(1000); // Set the timer to update every 1 second
         timer.Elapsed += UpdateTime; // This will pass both sender and ElapsedEventArgs to the method
         timer.Start();
+
+        result = 0;  // Set an initial temperature value
+        resultUnit = "°C";  // Set the default unit
     }
 
     private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
 
-    private void ConvertTemperature(ChangeEventArgs e)
+    private void UpdateTemperature(ChangeEventArgs e)
     {
-        // Update the selected conversion type
-        conversionType = e.Value?.ToString() ?? string.Empty;
+        if (decimal.TryParse(e.Value?.ToString(), out var temp))
+        {
+            temperature = (double)temp;
+            ConvertTemperature();
+        }
+    }
 
+    private void UpdateConversionType(ChangeEventArgs e)
+    {
+        conversionType = e.Value?.ToString() ?? "CtoF";
+        ConvertTemperature();
+    }
+
+    private void ConvertTemperature()
+    {
         if (conversionType == "CtoF")
         {
-            result = Math.Round((temperature * 9 / 5) + 32, 2); // Round to 2 decimal places   
+            result = Math.Round((temperature * 9 / 5) + 32, 1);
             resultUnit = "°F";
         }
         else if (conversionType == "FtoC")
         {
-            result = Math.Round((temperature - 32) * 5 / 9, 2); // Round to 2 decimal places            
+            result = Math.Round((temperature - 32) * 5 / 9, 1);
             resultUnit = "°C";
         }
     }
+
 
     private void AddTask()
     {
