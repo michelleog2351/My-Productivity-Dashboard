@@ -47,13 +47,18 @@
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-
-    .circular-progress-wrapper {
+    .progress-timer-container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        justify-content: space-between; /* Adjusts spacing between the two sections */
+        align-items: flex-start; /* Aligns items at the top */
+        gap: 20px; /* Adds space between the two sections */
     }
+
+    .circular-progress-wrapper, .timer-container {
+        flex: 1;
+        max-width: 50%; /* Ensure they take equal space */
+    }
+
 
     .circular-progress {
         width: 220px;
@@ -106,20 +111,61 @@
             transform: scale(1.1); /* Slightly increase the size */
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Add a shadow effect */
         }
+
+    .timer-container {
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        justify-content: center; /* Center items vertically */
+        margin: 20px auto;
+    }
+
+    .circular-timer {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background-color: #fff; /* Background for inner circle */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px; /* Add some space between the timer and the buttons */
+    }
+
+    .timer-text {
+        font-size: 2rem;
+        position: absolute;
+        z-index: 2;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 10px; /* Space between buttons */
+    }
+
+        .button-group button {
+            padding: 10px 20px;
+        }
+
+
 </style>
 @if(!hasEnteredName && !isLoading)
 {
     <div class="welcome-to-dashboard">
         <h1 style=" font-family: 'Lucida Handwriting'">Welcome to My Productivity Dashboard!</h1>
-@*         <h5>Please enter your name to proceed to your productivity dashboard :)</h5>
- *@        <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." name="user-name" autocomplete="on" />
-            <button class="btn btn-success submit-name-btn" @onclick="async () => await SubmitName()"><strong>Go!</strong></button>
+            <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." name="user-name" autocomplete="on" />
+            <button class="btn btn-success submit-name-btn" @onclick="SubmitName"><strong>Go!</strong></button>
 
         <!-- After the Go button -->
-        @if (isLoading)
+        <!-- Border Spinner -->
+      @*   @if (isLoading)
         {
-            <p style="text-align: center; color: grey;">Loading...</p>
-        }
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        } *@
 
             <div class="notification" style="color:red; margin-top: 15px; display:@(nameAlert ? "block" : "none");">
                     <strong>Note:</strong> Please enter your name to proceed!
@@ -144,7 +190,7 @@ else{
             <div class="d-flex justify-content-end">
                 <div class="form-group mb-0 d-flex align-items-center">
                     <div class="me-2 col-md-4">
-                        <input type="number" class="form-control form-control-sm" id="tempInput" @oninput="(e) => UpdateTemperature(e)" placeholder="Temperature" />
+                        <input type="number" class="form-control form-control-sm" value="0" id="tempInput" @oninput="(e) => UpdateTemperature(e)" placeholder="Temperature" />
                     </div>
                     <div class="col-md-8">
                         <select class="form-control form-control-sm" id="conversionType" @onchange="(e) => UpdateConversionType(e)">
@@ -165,44 +211,38 @@ else{
     <!-- Greeting with the user's name -->
     <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>
 
-@*     <div class="container mt-4">
-        <div class="form-group row">
-            <div class="col-md-2">
-                <input type="number" class="form-control form-control-sm" id="tempInput" @oninput="(e) => UpdateTemperature(e)" placeholder="Temperature" />
-            </div>
-
-            <div class="col-md-3">
-                <select class="form-control form-control-sm" id="conversionType" @onchange="(e) => UpdateConversionType(e)">
-                    <option value="CtoF">Celsius to Fahrenheit</option>
-                    <option value="FtoC">Fahrenheit to Celsius</option>
-                </select>
-            </div>
-        </div>      
-
-      @*   @if (result.HasValue)
-        {
-            <p>The converted temperature is @result.Value @resultUnit</p>
-        } 
-    </div> *@
-
     <!-- Task progress section -->
-    <div class="circular-progress-wrapper">
-        <!-- Sub-heading for task progress, slightly smaller than the greeting -->
-        <h3 style="font-size: 22px; margin-bottom: 5px;"><strong>My Task Progress</strong></h3>
+    <div class="progress-timer-container">
+        <div class="circular-progress-wrapper">
+            <!-- Sub-heading for task progress, slightly smaller than the greeting -->
+            <h3 style="font-size: 22px; margin-bottom: 5px;"><strong>My Task Progress</strong></h3>
 
-        <div class="circular-progress" role="progressbar" 
-        aria-label="Total task progress" 
-        aria-valuemin="0" 
-        aria-valuemax="100"
-             title="@GetProgressText()">
+            <div class="circular-progress" role="progressbar"
+                 aria-label="Total task progress"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 title="@GetProgressText()">
 
-            <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
+                <span class="progress-percent">@GetProgressPercentage().ToString("0")%</span>
+            </div>
+            <span class="progress-text">@GetProgressText()</span>
+
+            <!-- Button to reveal tasks section -->
+            <button class="btn btn-primary add-view-tasks-btn" type="button" @onclick="ShowTaskSection"><strong>Add & View My Tasks</strong></button>
         </div>
-        <span class="progress-text">@GetProgressText()</span>
 
-        @* Button to reveal tasks section *@
-        <button class="btn btn-primary add-view-tasks-btn" type="button" @onclick="ShowTaskSection"><strong>Add & View My Tasks</strong></button>
+        <div class="timer-container">
+            <div class="circular-timer" style="background: conic-gradient(#4caf50 @progress%, #e0e0e0 0);">
+                <span class="timer-text">@remainingTime</span>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" @onclick="StartTimer">Start Timer</button>
+                <button class="btn btn-danger" @onclick="ResetTimer">Reset Timer</button>
+            </div>
+        </div>
     </div>
+
 
     @if (isTaskSectionVisible)
     {
@@ -288,7 +328,6 @@ else{
     private double progressPercentage => GetProgressPercentage();
     //  private string progressGradient => GetProgressGradient();
     private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
-
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
     private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
@@ -301,18 +340,23 @@ else{
 
     private TasksBusiness tasksBusiness = new(); // Create a new instance
 
-    private async Task SubmitName()
+    private int totalTime = 30; // Total time in seconds
+    private int remainingTime;
+    private double progress;
+    private System.Timers.Timer? countdownTimer;
+
+    private void SubmitName()
     {
         if (!string.IsNullOrWhiteSpace(userName))
         {
-            isLoading = true; // Show text
+            // isLoading = true; // Show text
             StateHasChanged();
 
             // Simulate a delay
-            await Task.Delay(1500);
+            // await Task.Delay(1500);
 
             hasEnteredName = true; // Set to true to reveal the dashboard
-            isLoading = false;
+            // isLoading = false;
             nameAlert = true; // Show the alert if the name is empty
         }
         else
@@ -362,7 +406,6 @@ else{
         }
     }
 
-
     private void AddTask()
     {
         if (tasksBusiness.GetTasks().Count >= taskGoal)
@@ -381,7 +424,6 @@ else{
         }
     }
 
-
     private string GetProgressText()
     {
         return completedTasks >= taskGoal
@@ -394,14 +436,6 @@ else{
         int completedTasks = tasksBusiness.GetCompletedTaskCount();
         return taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
     }
-
-    // Get the progress percentage and update the gradient background
-    // private string GetProgressGradient()
-    // {
-    //     double progressPercentage = taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
-    //     //StateHasChanged(); // Force re-render to apply the CSS transition
-    //     return $"conic-gradient(#4caf50 0% {progressPercentage}%, #e0e0e0 {progressPercentage}% 100%)";
-    // }
 
     private string GetEndOffset()
     {
@@ -445,6 +479,41 @@ else{
     private void MarkTaskCompleted(int id)
     {
         tasksBusiness.MarkTaskCompleted(id);
+    }
+
+    // Start the timer
+    private void StartTimer()
+    {
+        remainingTime = totalTime; // Initialize remaining time
+        progress = 100;
+
+        countdownTimer = new System.Timers.Timer(1000); // 1-second interval
+        countdownTimer.Elapsed += (sender, e) =>
+        {
+            remainingTime--;
+            progress = (double)remainingTime / totalTime * 100;
+            InvokeAsync(StateHasChanged); // Ensure UI is updated in real-time
+            if (remainingTime <= 0)
+            {
+                countdownTimer.Stop(); // Stop when time runs out
+            }
+        };
+        countdownTimer.Start();
+    }
+
+    // Reset the timer
+    private void ResetTimer()
+    {
+        countdownTimer?.Stop();
+        remainingTime = totalTime;
+        progress = 100;
+        StateHasChanged(); // Trigger UI update
+    }
+
+    // Get the gradient for the circular progress bar
+    private string GetProgressGradient()
+    {
+        return $"conic-gradient(#4caf50 {progress}%, #e0e0e0 {progress}% 100%)";
     }
 
     // Create Task Model
