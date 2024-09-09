@@ -282,11 +282,28 @@ else{
         <div class="timer-container">
             <div class="form-group mb-0 d-flex align-items-center">
                 <div class="d-flex align-items-center">
-                    <input type="number" class="form-control form-control-sm me-1" style="width: 70px;" value="00" placeholder="Hrs" />
+                    @* Hours *@
+                    <input type="number" class="form-control form-control-sm me-1" 
+                           style="width: 70px;" 
+                           value="00" min="0" max="23"
+                           @oninput="OnHoursChange"
+                           placeholder="Hrs" />
                     <p class="m-0"><strong>:</strong></p>
-                    <input type="number" class="form-control form-control-sm ms-1" style="width: 70px;" value="00" placeholder="Mins" />
+
+                    @* Minutes *@
+                    <input type="number" class="form-control form-control-sm ms-1" 
+                           style="width: 70px;" 
+                           value="00" min="0" max="59"
+                           @oninput="OnMinsChange"
+                           placeholder="Mins" />
                     <p class="m-0"><strong>:</strong></p>
-                    <input type="number" class="form-control form-control-sm me-1" style="width: 70px;" value="00" placeholder="Secs" />
+
+                    @* Seconds *@
+                    <input type="number" class="form-control form-control-sm me-1" 
+                           style="width: 70px;" 
+                           value="00" min="0" max="59"
+                           @oninput="OnSecsChange"
+                           placeholder="Secs" />
                     <button class="btn btn-primary" @* @onclick="Confirm" *@>Confirm</button>
                 </div>
             </div>
@@ -371,204 +388,241 @@ else{
     }
 }
 @code {
-	private bool hasEnteredName = false; // Set to track if the user has entered in their name
-	private string userName = "";
-	private bool nameAlert = false;
-	private bool isLoading = false;
+    private bool hasEnteredName = false; // Set to track if the user has entered in their name
+    private string userName = "";
+    private bool nameAlert = false;
+    private bool isLoading = false;
 
-	private bool isTaskSectionVisible = false; // State to control the visibility of the task section
-	private double temperature;
-	private double? result;
-	private string conversionType = "CtoF"; // Default selection
-	private string? resultUnit; 
-	private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
+    private bool isTaskSectionVisible = false; // State to control the visibility of the task section
+    private double temperature;
+    private double? result;
+    private string conversionType = "CtoF"; // Default selection
+    private string? resultUnit; 
+    private string CurrentDateTime => DateTime.Now.ToString("MMMM dd yyyy, hh:mm:ss tt");
 
-	private int taskGoal = 1;  // Variable to store the user's goal (default value)
-	private string progressText => GetProgressText();
-	private double progressPercentage => GetProgressPercentage();
-	//  private string progressGradient => GetProgressGradient();
-	private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
-	private string newTaskTitle = string.Empty;
-	private string newTaskDescription = string.Empty;
-	private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
-	private bool tasksLimitAlert = false;
+    private TasksBusiness tasksBusiness = new(); // Create a new instance
+    private int taskGoal = 1;  // Variable to store the user's goal (default value)
+    private string progressText => GetProgressText();
+    private double progressPercentage => GetProgressPercentage();
+    //  private string progressGradient => GetProgressGradient();
+    private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
+    private string newTaskTitle = string.Empty;
+    private string newTaskDescription = string.Empty;
+    private bool IsAddTaskButtonDisabled => string.IsNullOrWhiteSpace(newTaskTitle);
+    private bool tasksLimitAlert = false;
 
-	// Edit Task variables
-	private int editTaskId = -1; // used to track which task is being eidted
-	private string editTaskTitle = string.Empty;
-	private string editTaskDescription = string.Empty;
+    // Edit Task variables
+    private int editTaskId = -1; // used to track which task is being eidted
+    private string editTaskTitle = string.Empty;
+    private string editTaskDescription = string.Empty;
 
-	private TasksBusiness tasksBusiness = new(); // Create a new instance
+    private int totalTime = 30; // Total time in seconds
+    private int remainingTime;
 
-	private int totalTime = 30; // Total time in seconds
-	private int remainingTime;
-	private double progress;
-	private System.Timers.Timer? countdownTimer;
 
-	private void SubmitName()
-	{
-		if (!string.IsNullOrWhiteSpace(userName))
-		{
-		// isLoading = true; // Show text
-			StateHasChanged();
+    private string hours = "00";
+    private string minutes = "00";
+    private string seconds = "00";
+    // private string remainingTime => $"{hours}:{minutes}:{seconds}";
+    private double progress;
+    private System.Timers.Timer? countdownTimer;
 
-			// Simulate a delay
-			// await Task.Delay(1500);
+    private void SubmitName()
+    {
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            // isLoading = true; // Show text
+            StateHasChanged();
 
-			hasEnteredName = true; // Set to true to reveal the dashboard
-											// isLoading = false;
-			nameAlert = true; // Show the alert if the name is empty
-		}
-		else
-		{
-			nameAlert = true; // Show alert if name is not entered
-		}
-	}
+            // Simulate a delay
+            // await Task.Delay(1500);
 
-	protected override void OnInitialized()
-	{
-		var timer = new System.Timers.Timer(1000); // Set the timer to update every 1 second
-		timer.Elapsed += UpdateTime; // This will pass both sender and ElapsedEventArgs to the method
-		timer.Start();
+            hasEnteredName = true; // Set to true to reveal the dashboard
+                                   // isLoading = false;
+            nameAlert = true; // Show the alert if the name is empty
+        }
+        else
+        {
+            nameAlert = true; // Show alert if name is not entered
+        }
+    }
 
-		result = 0;  // Set an initial temperature value
-		resultUnit = "°C";  // Set the default unit
-	}
+    protected override void OnInitialized()
+    {
+        var timer = new System.Timers.Timer(1000); // Set the timer to update every 1 second
+        timer.Elapsed += UpdateTime; // This will pass both sender and ElapsedEventArgs to the method
+        timer.Start();
 
-	private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
+        result = 0;  // Set an initial temperature value
+        resultUnit = "°C";  // Set the default unit
+    }
 
-	private void UpdateTemperature(ChangeEventArgs e)
-	{
-		if (decimal.TryParse(e.Value?.ToString(), out var temp))
-		{
-			temperature = (double)temp;
-			ConvertTemperature();
-		}
-	}
+    private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
 
-	private void UpdateConversionType(ChangeEventArgs e)
-	{
-		conversionType = e.Value?.ToString() ?? "CtoF";
-		ConvertTemperature();
-	}
+    private void UpdateTemperature(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var temp))
+        {
+            temperature = (double)temp;
+            ConvertTemperature();
+        }
+    }
 
-	private void ConvertTemperature()
-	{
-		if (conversionType == "CtoF")
-		{
-			result = Math.Round((temperature * 9 / 5) + 32, 1);
-			resultUnit = "°F";
-		}
-		else if (conversionType == "FtoC")
-		{
-			result = Math.Round((temperature - 32) * 5 / 9, 1);
-			resultUnit = "°C";
-		}
-	}
+    private void UpdateConversionType(ChangeEventArgs e)
+    {
+        conversionType = e.Value?.ToString() ?? "CtoF";
+        ConvertTemperature();
+    }
 
-	private void AddTask()
-	{
-		if (tasksBusiness.GetTasks().Count >= taskGoal)
-		{
-		// Show notification when trying to add more tasks than the goal
-			tasksLimitAlert = true;
-		}
-		else if (!string.IsNullOrWhiteSpace(newTaskTitle))
-		{
-			tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
-			newTaskTitle = string.Empty;
-			newTaskDescription = string.Empty;
+    private void ConvertTemperature()
+    {
+        if (conversionType == "CtoF")
+        {
+            result = Math.Round((temperature * 9 / 5) + 32, 1);
+            resultUnit = "°F";
+        }
+        else if (conversionType == "FtoC")
+        {
+            result = Math.Round((temperature - 32) * 5 / 9, 1);
+            resultUnit = "°C";
+        }
+    }
 
-			// Hide notification if task is successfully added
-			tasksLimitAlert = false;
-		}
-	}
+    private void AddTask()
+    {
+        if (tasksBusiness.GetTasks().Count >= taskGoal)
+        {
+            // Show notification when trying to add more tasks than the goal
+            tasksLimitAlert = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(newTaskTitle))
+        {
+            tasksBusiness.AddTask(newTaskTitle, newTaskDescription);
+            newTaskTitle = string.Empty;
+            newTaskDescription = string.Empty;
 
-	private string GetProgressText()
-	{
-		return completedTasks >= taskGoal
-			? "Well done! \n You have completed all of today's tasks!"
-			: $"{completedTasks} of {taskGoal} tasks completed";
-	}
+            // Hide notification if task is successfully added
+            tasksLimitAlert = false;
+        }
+    }
 
-	private double GetProgressPercentage()
-	{
-		int completedTasks = tasksBusiness.GetCompletedTaskCount();
-		return taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
-	}
+    private string GetProgressText()
+    {
+        return completedTasks >= taskGoal
+            ? "Well done! \n You have completed all of today's tasks!"
+            : $"{completedTasks} of {taskGoal} tasks completed";
+    }
 
-	private string GetEndOffset()
-	{
-		double completedPercentage = (completedTasks / (double)taskGoal) * 100.0;
-		double radians = completedPercentage * 3.6 * (Math.PI / 180.0); // Convert percentage to radians
-		double radius = 75.0; // Half of the progress bar size
-		double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
-		return $"{offset}px"; // Return as CSS-compatible string
-	}
+    private double GetProgressPercentage()
+    {
+        int completedTasks = tasksBusiness.GetCompletedTaskCount();
+        return taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
+    }
 
-	private void ShowTaskSection()
-	{
-		isTaskSectionVisible = !isTaskSectionVisible;
-	}
+    private string GetEndOffset()
+    {
+        double completedPercentage = (completedTasks / (double)taskGoal) * 100.0;
+        double radians = completedPercentage * 3.6 * (Math.PI / 180.0); // Convert percentage to radians
+        double radius = 75.0; // Half of the progress bar size
+        double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
+        return $"{offset}px"; // Return as CSS-compatible string
+    }
 
-	private void StartEditTask(int id, string title, string description)
-	{
-		editTaskId = id;
-		editTaskTitle = title;
-		editTaskDescription = description;
-	}
+    private void ShowTaskSection()
+    {
+        isTaskSectionVisible = !isTaskSectionVisible;
+    }
 
-	private void SaveTaskEdit()
-	{
-		tasksBusiness.EditTask(editTaskId, editTaskTitle, editTaskDescription);
-		CancelEdit(); // Clear edit state after saving, resetting Edit mode
-	}
+    private void StartEditTask(int id, string title, string description)
+    {
+        editTaskId = id;
+        editTaskTitle = title;
+        editTaskDescription = description;
+    }
 
-	private void CancelEdit()
-	{
-		editTaskId = -1;
-		editTaskTitle = "";
-		editTaskDescription = "";
-	}
+    private void SaveTaskEdit()
+    {
+        tasksBusiness.EditTask(editTaskId, editTaskTitle, editTaskDescription);
+        CancelEdit(); // Clear edit state after saving, resetting Edit mode
+    }
 
-	private void DeleteTask(int id)
-	{
-		tasksBusiness.DeleteTask(id);
-	}
+    private void CancelEdit()
+    {
+        editTaskId = -1;
+        editTaskTitle = "";
+        editTaskDescription = "";
+    }
 
-	private void MarkTaskCompleted(int id)
-	{
-		tasksBusiness.MarkTaskCompleted(id);
-	}
+    private void DeleteTask(int id)
+    {
+        tasksBusiness.DeleteTask(id);
+    }
 
-	// Start the timer
-	private void StartTimer()
-	{
-		remainingTime = totalTime; // Initialize remaining time
-		progress = 100;
+    private void MarkTaskCompleted(int id)
+    {
+        tasksBusiness.MarkTaskCompleted(id);
+    }
 
-		countdownTimer = new System.Timers.Timer(1000); // 1-second interval
-		countdownTimer.Elapsed += (sender, e) =>
-		{
-			remainingTime--;
-			progress = (double)remainingTime / totalTime * 100;
-			InvokeAsync(StateHasChanged); // Ensure UI is updated in real-time
-			if (remainingTime <= 0)
-			{
-				countdownTimer.Stop(); // Stop when time runs out
-			}
-		};
-		countdownTimer.Start();
-	}
+    private void OnHoursChange(ChangeEventArgs e)
+    {
+        int value = int.Parse(e.Value?.ToString() ?? "0"); 
+        hours = value.ToString("D2"); // To ensure two digits when operating the arrow keys
+        if (value < 0) hours = "00";
+        if (value > 23) hours = "23";
+    }
 
-	// Reset the timer
-	private void ResetTimer()
-	{
-		countdownTimer?.Stop();
-		remainingTime = totalTime;
-		progress = 100;
-		StateHasChanged(); // Trigger UI update
-	}
+    private void OnMinsChange(ChangeEventArgs e)
+    {
+        int value = int.Parse(e.Value?.ToString() ?? "0");
+        minutes = value.ToString("D2"); // To ensure two digits when operating the arrow keys
+        if (value < 0) minutes = "00";
+        if (value > 59) minutes = "59";
+    }
+
+    private void OnSecsChange(ChangeEventArgs e)
+    {
+        int value = int.Parse(e.Value?.ToString() ?? "0"); 
+        seconds = value.ToString("D2"); // To ensure two digits when operating the arrow keys
+        if (value < 0) seconds = "00";
+        if (value > 59) seconds = "59";
+    }
+
+    // Start the timer
+    private void StartTimer()
+    {
+        totalTime = (int.Parse(hours) * 3600) + (int.Parse(minutes) * 60) + int.Parse(seconds);
+        remainingTime = totalTime; // Initialize remaining time
+        progress = 100;
+
+        countdownTimer = new System.Timers.Timer(1000); // 1-second interval
+        countdownTimer.Elapsed += (sender, e) =>
+        {
+            if (remainingTime > 0)
+            {
+                remainingTime--;
+                progress = (double)remainingTime / totalTime * 100;
+                InvokeAsync(StateHasChanged); // Ensure UI is updated in real-
+            }
+
+            else
+            {
+                countdownTimer.Stop(); // Stop when time runs out
+            }
+        };
+        countdownTimer.Start();
+    }
+
+    // Reset the timer
+    private void ResetTimer()
+    {
+        // Reset the timer and values
+        hours = "00";
+        minutes = "00";
+        seconds = "00";
+        progress = 100;
+        remainingTime = 0;
+        countdownTimer?.Stop();
+    }
 
 	// Get the gradient for the circular progress bar
 	private string GetProgressGradient()
