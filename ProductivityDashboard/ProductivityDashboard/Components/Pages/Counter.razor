@@ -283,11 +283,12 @@ else{
             <div class="form-group mb-0 d-flex align-items-center">
                 <div class="d-flex align-items-center">
                     @* Hours *@
-                    <input type="number" class="form-control form-control-sm me-1" 
-                           style="width: 70px;" 
-                           value="00" min="0" max="23"
-                           @oninput="OnHoursChange"
+                    <input type="number" class="form-control form-control-sm me-1"
+                           style="width: 70px;"
+                           @bind-value="hours" @bind-value:event="oninput"
+                           min="0" max="23"
                            placeholder="Hrs" />
+
                     <p class="m-0"><strong>:</strong></p>
 
                     @* Minutes *@
@@ -416,9 +417,8 @@ else{
     private string editTaskTitle = string.Empty;
     private string editTaskDescription = string.Empty;
 
-    private int totalTime = 30; // Total time in seconds
+    private int totalTime; // Total time in seconds
     private int remainingTime;
-
 
     private string hours = "00";
     private string minutes = "00";
@@ -565,26 +565,46 @@ else{
 
     private void OnHoursChange(ChangeEventArgs e)
     {
-        int value = int.Parse(e.Value?.ToString() ?? "0"); 
-        hours = value.ToString("D2"); // To ensure two digits when operating the arrow keys
-        if (value < 0) hours = "00";
-        if (value > 23) hours = "23";
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value < 0) value = 0; // Handle negative values
+            if (value > 23) value = 0; // Wrap around for hours
+            hours = value.ToString("D2"); // Ensure two digits
+        }
+        else
+        {
+            hours = "00"; // Default to "00" on invalid input
+        }
     }
 
+    // Handle minutes change
     private void OnMinsChange(ChangeEventArgs e)
     {
-        int value = int.Parse(e.Value?.ToString() ?? "0");
-        minutes = value.ToString("D2"); // To ensure two digits when operating the arrow keys
-        if (value < 0) minutes = "00";
-        if (value > 59) minutes = "59";
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value < 0) value = 0;
+            if (value > 59) value = 59;
+            minutes = value.ToString("D2");
+        }
+        else
+        {
+            minutes = "00";
+        }
     }
 
+    // Handle seconds change
     private void OnSecsChange(ChangeEventArgs e)
     {
-        int value = int.Parse(e.Value?.ToString() ?? "0"); 
-        seconds = value.ToString("D2"); // To ensure two digits when operating the arrow keys
-        if (value < 0) seconds = "00";
-        if (value > 59) seconds = "59";
+        if (int.TryParse(e.Value?.ToString(), out int value))
+        {
+            if (value < 0) value = 0;
+            if (value > 59) value = 59;
+            seconds = value.ToString("D2");
+        }
+        else
+        {
+            seconds = "00";
+        }
     }
 
     // Start the timer
