@@ -4,6 +4,21 @@
 <PageTitle>Dashboard</PageTitle>
 
 @inject IJSRuntime JS
+@inject IJSRuntime JSRuntime
+
+<!-- Embed the JavaScript in the same file -->
+@* <script>
+    window.showModal = (modalId) => {
+        try {
+            var modalElement = document.getElementById(modalId);
+            if (!modalElement) throw new Error("Modal element not found.");
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } catch (error) {
+            console.error("Failed to show modal:", error);
+        }
+    };
+</script> *@
 
 <style>
     .welcome-to-dashboard {
@@ -282,30 +297,33 @@ else{
         <div class="timer-container">
             <div class="form-group mb-0 d-flex align-items-center">
                 <div class="d-flex align-items-center">
-                    @* Hours *@
-                    <input type="number" class="form-control form-control-sm me-1"
-                           style="width: 70px;"
-                           @bind-value="hours" @bind-value:event="oninput"
-                           min="0" max="23"
-                           placeholder="Hrs" />
+                     @* Hours Input *@
+            <input type="number" class="form-control form-control-sm me-1" 
+                   style="width: 70px;" 
+                   value="@hours" min="0" max="23"
+                   
+                   @oninput="OnHoursChange"
+                   placeholder="Hrs" />
 
-                    <p class="m-0"><strong>:</strong></p>
+            <p class="m-0"><strong>:</strong></p>
 
-                    @* Minutes *@
-                    <input type="number" class="form-control form-control-sm ms-1" 
-                           style="width: 70px;" 
-                           value="00" min="0" max="59"
-                           @oninput="OnMinsChange"
+            @* Minutes Input *@
+            <input type="number" class="form-control form-control-sm ms-1" 
+                   style="width: 70px;" 
+                   value="@minutes" min="0" max="59"                                        
+                   @oninput="OnMinsChange"
                            placeholder="Mins" />
-                    <p class="m-0"><strong>:</strong></p>
 
-                    @* Seconds *@
-                    <input type="number" class="form-control form-control-sm me-1" 
-                           style="width: 70px;" 
-                           value="00" min="0" max="59"
-                           @oninput="OnSecsChange"
+            <p class="m-0"><strong>:</strong></p>
+
+            @* Seconds Input *@
+            <input type="number" class="form-control form-control-sm ms-1"
+						   style="width: 70px;" @* @onclick="Confirm" *@
+                   value="@seconds" min="0" max="59"
+                    @oninput="OnSecsChange"
                            placeholder="Secs" />
-                    <button class="btn btn-primary" @* @onclick="Confirm" *@>Confirm</button>
+
+                    <button class="btn btn-primary" >Confirm</button>
                 </div>
             </div>
 
@@ -405,7 +423,7 @@ else{
     private int taskGoal = 1;  // Variable to store the user's goal (default value)
     private string progressText => GetProgressText();
     private double progressPercentage => GetProgressPercentage();
-    //  private string progressGradient => GetProgressGradient();
+
     private int completedTasks => tasksBusiness.GetCompletedTaskCount(); // Get the completed tasks count
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
@@ -420,9 +438,18 @@ else{
     private int totalTime; // Total time in seconds
     private int remainingTime;
 
-    private string hours = "00";
-    private string minutes = "00";
-    private string seconds = "00";
+    // private string hours = "00";
+    // private string minutes = "00";
+    // private string seconds = "00";
+
+
+    private int hours = 0;
+    private int minutes = 0;
+    private int seconds = 0;
+
+    // private string modalHours = "00";
+    // private string modalMinutes = "00";
+    // private string modalSeconds = "00";
     // private string remainingTime => $"{hours}:{minutes}:{seconds}";
     private double progress;
     private System.Timers.Timer? countdownTimer;
@@ -519,15 +546,6 @@ else{
         return taskGoal > 0 ? (double)completedTasks / taskGoal * 100 : 0;
     }
 
-    private string GetEndOffset()
-    {
-        double completedPercentage = (completedTasks / (double)taskGoal) * 100.0;
-        double radians = completedPercentage * 3.6 * (Math.PI / 180.0); // Convert percentage to radians
-        double radius = 75.0; // Half of the progress bar size
-        double offset = radius * Math.Sin(radians); // Calculate offset based on radius and angle
-        return $"{offset}px"; // Return as CSS-compatible string
-    }
-
     private void ShowTaskSection()
     {
         isTaskSectionVisible = !isTaskSectionVisible;
@@ -569,12 +587,13 @@ else{
         {
             if (value < 0) value = 0; // Handle negative values
             if (value > 23) value = 0; // Wrap around for hours
-            hours = value.ToString("D2"); // Ensure two digits
+                                       // hours = value.ToString("D2"); // Ensure two digits
+            hours = value;
         }
-        else
-        {
-            hours = "00"; // Default to "00" on invalid input
-        }
+        // else
+        // {
+        //     hours = "00"; // Default to "00" on invalid input
+        // }
     }
 
     // Handle minutes change
@@ -584,12 +603,13 @@ else{
         {
             if (value < 0) value = 0;
             if (value > 59) value = 59;
-            minutes = value.ToString("D2");
+            // minutes = value.ToString("D2");
+            minutes = value;
         }
-        else
-        {
-            minutes = "00";
-        }
+        // else
+        // {
+        //     minutes = "00";
+        // }
     }
 
     // Handle seconds change
@@ -599,34 +619,84 @@ else{
         {
             if (value < 0) value = 0;
             if (value > 59) value = 59;
-            seconds = value.ToString("D2");
+            // seconds = value.ToString("D2");
+            seconds = value;
         }
-        else
-        {
-            seconds = "00";
-        }
+        // else
+        // {
+        //     seconds = "00";
+        // }
     }
 
+    private void Confirm()
+    {
+        // Convert time to total seconds directly using the integer values
+        int totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+        // Update remainingTime and progress based on totalSeconds
+        remainingTime = totalSeconds;
+
+        // Call GetProgressGradient without passing the totalSeconds since it doesn’t take parameters
+        GetProgressGradient(totalSeconds);
+    }
+
+
+    // // Show modal when clicking on any input
+    // private async void ShowModal()
+    // {
+    //     // Copy the current values to modal
+    //     modalHours = hours;
+    //     modalMinutes = minutes;
+    //     modalSeconds = seconds;
+
+    //     // Call JavaScript to show the modal
+    //     await JSRuntime.InvokeVoidAsync("showModal", "timerModal");
+    // }
+
+    // // Update values inside the modal
+    // private void OnModalHoursChange(ChangeEventArgs e)
+    // {
+    //     modalHours = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
+    // }
+
+    // private void OnModalMinsChange(ChangeEventArgs e)
+    // {
+    //     modalMinutes = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
+    // }
+
+    // private void OnModalSecsChange(ChangeEventArgs e)
+    // {
+    //     modalSeconds = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
+    // }
+
+    // // Save changes from the modal to the main inputs
+    // private void SaveChanges()
+    // {
+    //     hours = modalHours;
+    //     minutes = modalMinutes;
+    //     seconds = modalSeconds;
+    // }
+
     // Start the timer
+
     private void StartTimer()
     {
-        totalTime = (int.Parse(hours) * 3600) + (int.Parse(minutes) * 60) + int.Parse(seconds);
-        remainingTime = totalTime; // Initialize remaining time
+        totalTime = (hours * 3600) + (minutes * 60) + seconds;
+        remainingTime = totalTime;
         progress = 100;
 
-        countdownTimer = new System.Timers.Timer(1000); // 1-second interval
+        countdownTimer = new System.Timers.Timer(1000);
         countdownTimer.Elapsed += (sender, e) =>
         {
             if (remainingTime > 0)
             {
                 remainingTime--;
                 progress = (double)remainingTime / totalTime * 100;
-                InvokeAsync(StateHasChanged); // Ensure UI is updated in real-
+                InvokeAsync(StateHasChanged);
             }
-
             else
             {
-                countdownTimer.Stop(); // Stop when time runs out
+                countdownTimer.Stop();
             }
         };
         countdownTimer.Start();
@@ -635,20 +705,20 @@ else{
     // Reset the timer
     private void ResetTimer()
     {
-        // Reset the timer and values
-        hours = "00";
-        minutes = "00";
-        seconds = "00";
+        hours = 0;
+        minutes = 0;
+        seconds = 0;
         progress = 100;
         remainingTime = 0;
         countdownTimer?.Stop();
     }
 
 	// Get the gradient for the circular progress bar
-	private string GetProgressGradient()
-	{
-		return $"conic-gradient(#4caf50 {progress}%, #e0e0e0 {progress}% 100%)";
-	}
+    private string GetProgressGradient(int totalSeconds)
+    {
+        double progress = totalSeconds > 0 ? (double)remainingTime / totalSeconds * 100 : 0;
+        return $"conic-gradient(#4caf50 {progress}%, #e0e0e0 {progress}% 100%)";
+    }
 
 	// Create Task Model
 	public class TaskItem
@@ -701,8 +771,8 @@ else{
 		}
 
 		public int GetCompletedTaskCount() => tasks.Count(t => t.IsCompleted);
-
 	}
+
     private void BackToTop()
     {
         // Scroll to the top of the page
