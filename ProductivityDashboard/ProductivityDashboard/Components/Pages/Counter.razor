@@ -6,20 +6,6 @@
 @inject IJSRuntime JS
 @inject IJSRuntime JSRuntime
 
-<!-- Embed the JavaScript in the same file -->
-@* <script>
-    window.showModal = (modalId) => {
-        try {
-            var modalElement = document.getElementById(modalId);
-            if (!modalElement) throw new Error("Modal element not found.");
-            var modal = new bootstrap.Modal(modalElement);
-            modal.show();
-        } catch (error) {
-            console.error("Failed to show modal:", error);
-        }
-    };
-</script> *@
-
 <style>
     .welcome-to-dashboard {
         background-color: #282c34;
@@ -300,8 +286,7 @@ else{
                      @* Hours Input *@
             <input type="number" class="form-control form-control-sm me-1" 
                    style="width: 70px;" 
-                   value="@hours" min="0" max="23"
-                   
+                   value="@formattedHours"                   
                    @oninput="OnHoursChange"
                    placeholder="Hrs" />
 
@@ -310,7 +295,7 @@ else{
             @* Minutes Input *@
             <input type="number" class="form-control form-control-sm ms-1" 
                    style="width: 70px;" 
-                   value="@minutes" min="0" max="59"                                        
+                   value="@formattedMinutes"                                      
                    @oninput="OnMinsChange"
                            placeholder="Mins" />
 
@@ -318,12 +303,12 @@ else{
 
             @* Seconds Input *@
             <input type="number" class="form-control form-control-sm ms-1"
-						   style="width: 70px;" @* @onclick="Confirm" *@
-                   value="@seconds" min="0" max="59"
+						   style="width: 70px;" 
+                   value="@formattedSeconds"
                     @oninput="OnSecsChange"
                            placeholder="Secs" />
 
-                    <button class="btn btn-primary" >Confirm</button>
+                    <button class="btn btn-primary" @onclick="Confirm">Confirm</button>
                 </div>
             </div>
 
@@ -332,7 +317,12 @@ else{
             </div>
 
             <div class="button-group mt-2">
-                <button class="btn btn-success me-2" @onclick="StartTimer">Start Timer</button>
+                <button class="btn btn-success me-2"
+                        @onclick="StartTimer"
+                        disabled="@IsTimeValid"
+                        title="@(IsTimeValid ? "Add an appropriate time to start the timer!" : null)">
+                    Start Timer
+                </button>                
                 <button class="btn btn-danger" @onclick="ResetTimer">Reset</button>
             </div>
         </div>
@@ -435,24 +425,27 @@ else{
     private string editTaskTitle = string.Empty;
     private string editTaskDescription = string.Empty;
 
-    private int totalTime; // Total time in seconds
-    private int remainingTime;
-
-    // private string hours = "00";
-    // private string minutes = "00";
-    // private string seconds = "00";
-
-
+    // Timer Variables 
     private int hours = 0;
     private int minutes = 0;
     private int seconds = 0;
+    private int totalTime; // Total time in seconds
+    private int remainingTime;
+
+    // Formatted strings for input display
+    private string formattedHours => hours.ToString("D2");
+    private string formattedMinutes => minutes.ToString("D2");
+    private string formattedSeconds => seconds.ToString("D2");
+    private double progress;
+    private System.Timers.Timer? countdownTimer;
+
+    // Determine if the Start Timer button should be disabled
+    private bool IsTimeValid => hours == 0 && minutes == 0 && seconds == 0;
 
     // private string modalHours = "00";
     // private string modalMinutes = "00";
     // private string modalSeconds = "00";
     // private string remainingTime => $"{hours}:{minutes}:{seconds}";
-    private double progress;
-    private System.Timers.Timer? countdownTimer;
 
     private void SubmitName()
     {
@@ -585,15 +578,15 @@ else{
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value < 0) value = 0; // Handle negative values
-            if (value > 23) value = 0; // Wrap around for hours
-                                       // hours = value.ToString("D2"); // Ensure two digits
-            hours = value;
+            // Wrap around using ternary operators
+            hours = value < 0 ? 23 :
+                    value > 23 ? 0 :
+                    value;
         }
-        // else
-        // {
-        //     hours = "00"; // Default to "00" on invalid input
-        // }
+        else
+        {
+            hours = 0; // Default to 0 on invalid input
+        }
     }
 
     // Handle minutes change
@@ -601,15 +594,15 @@ else{
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value < 0) value = 0;
-            if (value > 59) value = 59;
-            // minutes = value.ToString("D2");
-            minutes = value;
+            // Wrap around using ternary operators
+            minutes = value < 0 ? 59 :
+                    value > 59 ? 0 :
+                    value;
         }
-        // else
-        // {
-        //     minutes = "00";
-        // }
+        else
+        {
+            minutes = 0; // Default to 0 on invalid input
+        }
     }
 
     // Handle seconds change
@@ -617,15 +610,15 @@ else{
     {
         if (int.TryParse(e.Value?.ToString(), out int value))
         {
-            if (value < 0) value = 0;
-            if (value > 59) value = 59;
-            // seconds = value.ToString("D2");
-            seconds = value;
+            // Wrap around using ternary operators
+            seconds = value < 0 ? 59 :
+                    value > 59 ? 0 :
+                    value;
         }
-        // else
-        // {
-        //     seconds = "00";
-        // }
+        else
+        {
+            hours = 0; // Default to 0 on invalid input
+        }
     }
 
     private void Confirm()
@@ -635,50 +628,10 @@ else{
 
         // Update remainingTime and progress based on totalSeconds
         remainingTime = totalSeconds;
-
-        // Call GetProgressGradient without passing the totalSeconds since it doesn’t take parameters
         GetProgressGradient(totalSeconds);
     }
 
-
-    // // Show modal when clicking on any input
-    // private async void ShowModal()
-    // {
-    //     // Copy the current values to modal
-    //     modalHours = hours;
-    //     modalMinutes = minutes;
-    //     modalSeconds = seconds;
-
-    //     // Call JavaScript to show the modal
-    //     await JSRuntime.InvokeVoidAsync("showModal", "timerModal");
-    // }
-
-    // // Update values inside the modal
-    // private void OnModalHoursChange(ChangeEventArgs e)
-    // {
-    //     modalHours = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
-    // }
-
-    // private void OnModalMinsChange(ChangeEventArgs e)
-    // {
-    //     modalMinutes = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
-    // }
-
-    // private void OnModalSecsChange(ChangeEventArgs e)
-    // {
-    //     modalSeconds = int.Parse(e.Value?.ToString() ?? "0").ToString("D2");
-    // }
-
-    // // Save changes from the modal to the main inputs
-    // private void SaveChanges()
-    // {
-    //     hours = modalHours;
-    //     minutes = modalMinutes;
-    //     seconds = modalSeconds;
-    // }
-
     // Start the timer
-
     private void StartTimer()
     {
         totalTime = (hours * 3600) + (minutes * 60) + seconds;
