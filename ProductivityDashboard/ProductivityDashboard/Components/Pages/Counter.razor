@@ -184,6 +184,16 @@
         z-index: 2;
     }
 
+    .celebration-message {
+        font-size: 16px;
+        z-index: 3; /* Higher than the circular timer */
+        position: absolute; /* To position it on top of the circle */
+        top: 70%; /* Adjust the top value as needed */
+        left: 50%;
+        transform: translate(-50%, -50%); /* Center the text */
+    }
+
+
     /* Center buttons in the timer container */
     .button-group {
         display: flex;
@@ -314,6 +324,10 @@ else{
 
             <div class="circular-timer" style="background: conic-gradient(#2196F3 @progress%, #e0e0e0 0);">
                 <span class="timer-text">@remainingTime</span>
+            @if(remainingTime == 0)
+            {
+                    <p class="celebration-message text-success mt-2">🎉 Time's up! Great job! 🎉</p>
+            } 
             </div>
 
             <div class="button-group mt-2">
@@ -645,12 +659,15 @@ else{
             {
                 remainingTime--;
                 progress = (double)remainingTime / totalTime * 100;
-                InvokeAsync(StateHasChanged);
+                // InvokeAsync(StateHasChanged);
             }
             else
             {
                 countdownTimer.Stop();
             }
+
+            // Ensure the UI is updated on every tick and when the timer finishes
+            InvokeAsync(StateHasChanged);
         };
         countdownTimer.Start();
     }
