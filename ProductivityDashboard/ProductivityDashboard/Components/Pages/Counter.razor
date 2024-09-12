@@ -26,6 +26,8 @@
         margin-top: 10px;
         margin-bottom: 20px;
         width: 300px; /* Adjust width as needed */
+        padding: 10px 0px 10px 0px;
+        font-size: 20px;
         text-align: center; /* Center the text within the input */
     }
 
@@ -153,7 +155,16 @@
         align-items: center;
         justify-content: center;
         /* text-align: center; */
+        margin-bottom: 30px;
     }
+
+    .timer-label {
+        margin-top: 15px;
+        border-radius: 30px;
+        padding: 10px 15px;
+        width: 250px; /* Adjust width as needed */
+    }
+
 
     .circular-timer {
         width: 220px;
@@ -165,7 +176,7 @@
         position: relative;
         /* background-color: #fff; */
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        margin-bottom: 20px;
+        margin-bottom: 5px;
     }
 
         .circular-timer:before {
@@ -176,6 +187,21 @@
             border-radius: 50%;
             position: absolute;
             z-index: 1;
+        }
+
+    /* Center buttons in the timer container */
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        gap: 100px;
+        margin-top: 0; /* Remove extra space on top */
+    }
+
+        .button-group button {
+            border-radius: 50%;
+            height: 80px;
+            width: 80px;
+            padding: 10px;
         }
 
     .timer-text {
@@ -193,25 +219,12 @@
         transform: translate(-50%, -50%); /* Center the text */
     }
 
-
-    /* Center buttons in the timer container */
-    .button-group {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .button-group button {
-        padding: 10px 20px;
-    }
-
-
 </style>
 @if(!hasEnteredName && !isLoading)
 {
     <div class="welcome-to-dashboard">
         <h1 style=" font-family: 'Lucida Handwriting'">Welcome to My Productivity Dashboard!</h1>
-            <input type="text" class="form-control name-input" @bind="userName" placeholder="Enter your name here..." name="user-name" autocomplete="on" />
+            <input type="text" class="form-control name-input" style="border-radius: 30px;" @bind="userName" placeholder="Enter your name here!" name="user-name" autocomplete="on" />
             <button class="btn btn-success submit-name-btn" @onclick="SubmitName"><strong>Go!</strong></button>
 
         <!-- After the Go button -->
@@ -291,9 +304,15 @@ else{
         </div>
 
         <div class="timer-container">
+            <!-- Timer Label Input -->
+            <input type="text" class="form-control form-control-sm bg-light timer-label m-2"
+                   style=""
+                   @bind="timerLabel"
+                   placeholder="Enter timer name here..." 
+                   name="timer-label"
+                   autocomplete="on" />
             <div class="form-group mb-2 d-flex flex-column align-items-center">
                 <div class="d-flex align-items-center">
-                    <!-- Timer Label Input -->
                     @* Hours Input *@
                     <input type="number" class="form-control form-control-sm me-2"
                            style="width: 70px;"
@@ -325,34 +344,37 @@ else{
             </div>
 
             <div class="circular-timer" style="background: conic-gradient(#2196F3 @progress%, #e0e0e0 0);">
+
                 <span class="timer-text">@FormatDisplayTime(remainingTime)</span>
-                @if(remainingTime == 0)
+                @if (remainingTime == 0)
                 {
-                        <p class="celebration-message text-success mt-2">🎉 Time's up! Great job! 🎉</p>
-                } 
+                    <p class="celebration-message text-success mt-2">
+                        🎉 @(!string.IsNullOrEmpty(timerLabel) ? timerLabel : "Time's up! Great job!") 🎉
+                    </p>
+                }
             </div>
 
             <div class="button-group mt-2 d-flex justify-content-end">
                 <button class="btn btn-danger"
-                        style="border-radius: 70%; height: 70px; width: 75px;"
+                        style="border-radius: 50%; height: 80px; width: 80px;"
                         @onclick="ResetTimer">
                     Reset
                 </button>
 
                 <button class="btn btn-success me-2"
-                        style="border-radius: 70%; height: 70px; width: 75px;"
+                        style="border-radius: 50%; height: 80px; width: 80px;"
                         @onclick="StartTimer"
                         disabled="@IsTimeValid"
                         title="@(IsTimeValid ? "Add an appropriate time to start the timer!" : null)">
                     Start
                 </button>                
             </div>
-            <input type="text" class="form-control form-control-sm mb-2"
-                   placeholder="Enter timer label"
-                   @* @bind="timerLabel *@" />
-
+            @* <!-- Timer Label Input -->
+            <input type="text" class="form-control form-control-sm bg-light"
+                   style="margin-top: 15px; border-radius: 30px; padding: 10px 15px 10px 15px;"
+                   @bind="timerLabel"
+                   placeholder="Enter timer name here..." /> *@
         </div>
-
     </div>
 
 
@@ -451,7 +473,8 @@ else{
     private string editTaskTitle = string.Empty;
     private string editTaskDescription = string.Empty;
 
-    // Timer Variables 
+    // Timer Variables
+    private string timerLabel = ""; 
     private int hours = 0;
     private int minutes = 0;
     private int seconds = 0;
