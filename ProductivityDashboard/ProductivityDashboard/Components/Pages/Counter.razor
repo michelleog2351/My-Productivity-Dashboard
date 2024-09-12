@@ -179,7 +179,7 @@
         }
 
     .timer-text {
-        font-size: 55px;
+        font-size: 40px;
         position: absolute;
         z-index: 2;
     }
@@ -291,54 +291,66 @@ else{
         </div>
 
         <div class="timer-container">
-            <div class="form-group mb-0 d-flex align-items-center">
+            <div class="form-group mb-2 d-flex flex-column align-items-center">
                 <div class="d-flex align-items-center">
-                     @* Hours Input *@
-            <input type="number" class="form-control form-control-sm me-1" 
-                   style="width: 70px;" 
-                   value="@formattedHours"                   
-                   @oninput="OnHoursChange"
-                   placeholder="Hrs" />
+                    <!-- Timer Label Input -->
+                    @* Hours Input *@
+                    <input type="number" class="form-control form-control-sm me-2"
+                           style="width: 70px;"
+                           value="@formattedHours"
+                           @oninput="OnHoursChange"
+                           placeholder="Hrs" />
 
-            <p class="m-0"><strong>:</strong></p>
-
-            @* Minutes Input *@
-            <input type="number" class="form-control form-control-sm ms-1" 
-                   style="width: 70px;" 
-                   value="@formattedMinutes"                                      
-                   @oninput="OnMinsChange"
+                    <div class="d-flex align-items-center">
+                        <h4><strong>:</strong></h4>
+                    </div>
+                    @* Minutes Input *@
+                    <input type="number" class="form-control form-control-sm mx-2"
+                           style="width: 70px;"
+                           value="@formattedMinutes"
+                           @oninput="OnMinsChange"
                            placeholder="Mins" />
 
-            <p class="m-0"><strong>:</strong></p>
-
-            @* Seconds Input *@
-            <input type="number" class="form-control form-control-sm ms-1"
-						   style="width: 70px;" 
-                   value="@formattedSeconds"
-                    @oninput="OnSecsChange"
+                    <div class="d-flex align-items-center">
+                        <h4><strong>:</strong></h4>
+                    </div>
+                    @* Seconds Input *@
+                    <input type="number" class="form-control form-control-sm ms-2"
+                           style="width: 70px;"
+                           value="@formattedSeconds"
+                           @oninput="OnSecsChange"
                            placeholder="Secs" />
-
-                    <button class="btn btn-primary" @onclick="Confirm">Confirm</button>
                 </div>
+                <button class="btn btn-primary m-2 w-100" @onclick="Confirm">Confirm</button>
             </div>
 
             <div class="circular-timer" style="background: conic-gradient(#2196F3 @progress%, #e0e0e0 0);">
-                <span class="timer-text">@remainingTime</span>
-            @if(remainingTime == 0)
-            {
-                    <p class="celebration-message text-success mt-2">🎉 Time's up! Great job! 🎉</p>
-            } 
+                <span class="timer-text">@FormatDisplayTime(remainingTime)</span>
+                @if(remainingTime == 0)
+                {
+                        <p class="celebration-message text-success mt-2">🎉 Time's up! Great job! 🎉</p>
+                } 
             </div>
 
-            <div class="button-group mt-2">
+            <div class="button-group mt-2 d-flex justify-content-end">
+                <button class="btn btn-danger"
+                        style="border-radius: 70%; height: 70px; width: 75px;"
+                        @onclick="ResetTimer">
+                    Reset
+                </button>
+
                 <button class="btn btn-success me-2"
+                        style="border-radius: 70%; height: 70px; width: 75px;"
                         @onclick="StartTimer"
                         disabled="@IsTimeValid"
                         title="@(IsTimeValid ? "Add an appropriate time to start the timer!" : null)">
-                    Start Timer
+                    Start
                 </button>                
-                <button class="btn btn-danger" @onclick="ResetTimer">Reset</button>
             </div>
+            <input type="text" class="form-control form-control-sm mb-2"
+                   placeholder="Enter timer label"
+                   @* @bind="timerLabel *@" />
+
         </div>
 
     </div>
@@ -643,6 +655,25 @@ else{
         // Update remainingTime and progress based on totalSeconds
         remainingTime = totalSeconds;
         GetProgressGradient(totalSeconds);
+    }
+
+    // To show the time in the hh:mm:ss format, 
+    // Need to convert the remaining time into hours, minutes, and seconds.
+    private string FormatDisplayTime(int totalSeconds)
+    {
+        if (totalSeconds < 60)
+        {
+            // For durations less than one minute, display only seconds.
+            return $"{totalSeconds}";
+        }
+        else
+        {
+            int hours = totalSeconds / 3600;
+            int minutes = (totalSeconds % 3600) / 60;
+            int seconds = totalSeconds % 60;
+
+            return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
+        }
     }
 
     // Start the timer
