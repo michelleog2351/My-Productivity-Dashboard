@@ -131,8 +131,9 @@
         margin-top: 10px;
         margin-bottom: 10px;
         font-size: 20px;
-        font-weight: bold;
+        /* font-weight: bold; */
         color: #4caf50;
+        font-family: 'Segoe UI';
     }
 
     .add-view-tasks-btn{
@@ -255,6 +256,11 @@ else{
                title="Please enter a temperature below">@result.Value@resultUnit</p>
         }
 
+        <div style="text-align: left;">
+            <h1 style="color: black; font-size: 36px; margin-bottom: 5px;"><strong>Good morning, @userName! </strong></h1>
+            <h2 style="font-size: 24px; margin-bottom: 10px;">My Productivity Dashboard</h2>
+    </div>
+
         <div class="container mt-4">
             <div class="d-flex justify-content-end">
                 <div class="form-group mb-0 d-flex align-items-center">
@@ -273,12 +279,14 @@ else{
 
     </div>
 
-    <!-- Main heading -->
-    <h1 style=" font-size: 36px; margin-bottom: 5px;"><strong>My Productivity Dashboard</strong></h1>
-    <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+   @*  <!-- Main heading -->
+    <h1 style="font-size: 36px; margin-bottom: 5px;"><strong>My Productivity Dashboard</strong></h1>
 
     <!-- Greeting with the user's name -->
-    <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>
+    <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>  *@
+
+    <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
+
 
     <!-- Add Back To Top Button -->
     <button class="btn btn-success back-to-top" @onclick="BackToTop">^</button>
@@ -308,7 +316,7 @@ else{
             <input type="text" class="form-control form-control-sm bg-light timer-label m-2"
                    style=""
                    @bind="timerLabel"
-                   placeholder="Enter timer name here..." 
+                   placeholder="@userName's Timer" 
                    name="timer-label"
                    autocomplete="on" />
             <div class="form-group mb-2 d-flex flex-column align-items-center">
@@ -349,7 +357,7 @@ else{
                 @if (remainingTime == 0)
                 {
                     <p class="celebration-message text-success mt-2">
-                        🎉 @(!string.IsNullOrEmpty(timerLabel) ? timerLabel : "Time's up! Great job!") 🎉
+                        @(!string.IsNullOrEmpty(timerLabel) ? timerLabel : "Time's up! Great job!") 🎉
                     </p>
                 }
             </div>
@@ -501,19 +509,14 @@ else{
         if (!string.IsNullOrWhiteSpace(userName))
         {
             // isLoading = true; // Show text
-            StateHasChanged();
-
-            // Simulate a delay
-            // await Task.Delay(1500);
-
-            hasEnteredName = true; // Set to true to reveal the dashboard
-                                   // isLoading = false;
-            nameAlert = true; // Show the alert if the name is empty
+            hasEnteredName = true; // Set to true to reveal the dashboard                          
+            nameAlert = false; // Hide the alert since a valid name has been entered
         }
         else
         {
             nameAlert = true; // Show alert if name is not entered
         }
+        StateHasChanged();
     }
 
     protected override void OnInitialized()
@@ -578,7 +581,7 @@ else{
     private string GetProgressText()
     {
         return completedTasks >= taskGoal
-            ? "Well done! \n You have completed all of today's tasks!"
+            ? $"Take a bow {userName}, YOU have completed all of today's tasks!🎯"
             : $"{completedTasks} of {taskGoal} tasks completed";
     }
 
