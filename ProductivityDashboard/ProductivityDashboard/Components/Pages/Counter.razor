@@ -377,80 +377,83 @@ else{
                     Start
                 </button>                
             </div>
-            @* <!-- Timer Label Input -->
-            <input type="text" class="form-control form-control-sm bg-light"
-                   style="margin-top: 15px; border-radius: 30px; padding: 10px 15px 10px 15px;"
-                   @bind="timerLabel"
-                   placeholder="Enter timer name here..." /> *@
         </div>
     </div>
-
 
     @if (isTaskSectionVisible)
     {
         <div class="tasks-section">
-            <div class="set-task-goal mb-3">
+            <div class="set-task-goal mb-5">
                 <label for="taskGoal"><strong>So, how many tasks do you aim to complete today?</strong></label>
                 <input type="number" class="form-control" id="taskGoal" @bind="taskGoal" min="1" />
             </div>
 
-            <div class="task-list">
-                <ul>
-                    @foreach (var task in tasksBusiness.GetTasks())
-                    {
-                        <li>
-                             @if (task.Id == editTaskId)
-                            {
-                                <form class="form-inline">
-                                    <div class="form-group mr-2">
-                                        <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
-                                    </div>
-
-                                    <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                                    <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
-                                @if (task.IsCompleted && task.CompletedDate != null)
-                                {
-                                    <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
-                                }
-                                <div>
-                                <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
-                                <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
-                                </div>
-                            }
-                        </li>
-                    }
-                </ul>
-            </div>
-
-            <div class="add-task">
-                <h4>Add New Task</h4>
+            <div class="add-task mb-5">
+                <h5>Add New Task</h5>
                 <form class="form-inline">
                     <div class="form-group mr-2">
                         <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
                     </div>
 
                     <div class="form-group">
-                        <textarea class="form-control mb-2" placeholder="Description (optional)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
+                        <textarea class="form-control mb-2" placeholder="Description (Feel free to include due dates, priorities or other info for this task)" @bind="newTaskDescription" name="task-desc" autocomplete="on" />
                     </div>
                 </form>
 
-                <div class="notification" style="color:red; margin-bottom: 15px; display:@(tasksLimitAlert ? "block" : "none");">
-                    <strong>Note:</strong> YO! You have reached your task goal! Increase your no.tasks goals if you wish to add more tasks.
+                <div class="notification" style="color:red; margin-bottom: 15px; display:@(tasksLimitAlert ? "block" : "none")">
+                    <strong>Note: YO!</strong> You have reached your tasks goal! Increase your no.tasks goals if you wish to add more tasks.
                 </div>
 
-                <button class="btn btn-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
+                <button class="btn btn-outline-primary" disabled="@IsAddTaskButtonDisabled" @onclick="AddTask">Add Task</button>
+            </div>
+
+            <div class="accordion" id="taskAccordion">
+                <h5>My Task List</h5>
+                @foreach (var task in tasksBusiness.GetTasks())
+                {
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading@task.Id">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@task.Id" aria-expanded="false" aria-controls="collapse@task.Id">
+                                <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
+                                @if (task.IsCompleted && task.CompletedDate != null)
+                                {
+                                    <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
+                                }
+                            </button>
+                        </h2>
+                        <div id="collapse@task.Id" class="accordion-collapse collapse" aria-labelledby="heading@task.Id" data-bs-parent="#taskAccordion">
+                            <div class="accordion-body">
+                                @if (task.Id == editTaskId)
+                                {
+                                    <!-- Edit Mode -->
+                                    <form class="form-inline">
+                                        <div class="form-group mr-2">
+                                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
+                                        </div>
+                                        <div class="form-group">
+                                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
+                                        </div>
+                                        <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                                        <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <!-- Regular View Mode -->
+                                    <p>@task.Description</p>
+                                    <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                                    <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     }
+    <div class="footer shadow-sm bg-light p-3 m-1">
+        <footer style="margin-top: 20px;"></footer>
+    </div>
 }
 @code {
     private bool hasEnteredName = false; // Set to track if the user has entered in their name
