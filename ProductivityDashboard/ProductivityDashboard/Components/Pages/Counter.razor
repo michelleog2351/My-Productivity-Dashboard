@@ -316,7 +316,7 @@ else{
             <input type="text" class="form-control form-control-sm bg-light timer-label m-2"
                    style=""
                    @bind="timerLabel"
-                   placeholder="@userName's Timer" 
+                   placeholder="Name for @userName's timer..." 
                    name="timer-label"
                    autocomplete="on" />
             <div class="form-group mb-2 d-flex flex-column align-items-center">
@@ -351,7 +351,7 @@ else{
                 <button class="btn btn-primary m-2 w-100" @onclick="Confirm">Confirm</button>
             </div>
 
-            <div class="circular-timer" style="background: conic-gradient(#2196F3 @progress%, #e0e0e0 0);">
+            <div class="circular-timer" style="background: @GetProgressGradient();">
 
                 <span class="timer-text">@FormatDisplayTime(remainingTime)</span>
                 @if (remainingTime == 0)
@@ -369,12 +369,12 @@ else{
                     Reset
                 </button>
 
-                <button class="btn btn-success me-2"
-                        style="border-radius: 50%; height: 80px; width: 80px;"
-                        @onclick="StartTimer"
+                <button class="btn @(isPaused ? "btn-warning" : "btn-success")"
+                        style="border-radius: 50%; height: 80px; width: 80px; color: white;"
+                        @onclick="StartPauseTimer"
                         disabled="@IsTimeValid"
                         title="@(IsTimeValid ? "Add an appropriate time to start the timer!" : null)">
-                    Start
+                    @(isPaused ? "Pause" : "Start")
                 </button>                
             </div>
         </div>
@@ -421,7 +421,7 @@ else{
                                 }
                             </button>
                         </h2>
-                        <div id="collapse@task.Id" class="accordion-collapse collapse" aria-labelledby="heading@task.Id" data-bs-parent="#taskAccordion">
+                        <div id="collapse@task.Id" class="accordion-collapse collapse show" aria-labelledby="heading@task.Id" data-bs-parent="#taskAccordion">
                             <div class="accordion-body">
                                 @if (task.Id == editTaskId)
                                 {
@@ -498,6 +498,7 @@ else{
     private string formattedSeconds => seconds.ToString("D2");
     private double progress;
     private System.Timers.Timer? countdownTimer;
+    private bool isPaused = false;
 
     // Determine if the Start Timer button should be disabled
     private bool IsTimeValid => hours == 0 && minutes == 0 && seconds == 0;
@@ -679,11 +680,13 @@ else{
     private void Confirm()
     {
         // Convert time to total seconds directly using the integer values
-        int totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        totalTime = (hours * 3600) + (minutes * 60) + seconds;
 
         // Update remainingTime and progress based on totalSeconds
-        remainingTime = totalSeconds;
-        GetProgressGradient(totalSeconds);
+        remainingTime = totalTime;
+       // progress = 100;
+
+        // GetProgressGradient();
     }
 
     // To show the time in the hh:mm:ss format, 
@@ -706,30 +709,43 @@ else{
     }
 
     // Start the timer
-    private void StartTimer()
+    private void StartPauseTimer()
     {
-        totalTime = (hours * 3600) + (minutes * 60) + seconds;
-        remainingTime = totalTime;
-        progress = 100;
-
-        countdownTimer = new System.Timers.Timer(1000);
-        countdownTimer.Elapsed += (sender, e) =>
+        if (isPaused)
         {
-            if (remainingTime > 0)
+            // Pause the timer
+            countdownTimer?.Stop();
+        }
+        else
+        {
+            // If starting for the first time, calculate the total time
+            if (remainingTime == 0)
             {
-                remainingTime--;
-                progress = (double)remainingTime / totalTime * 100;
-                // InvokeAsync(StateHasChanged);
-            }
-            else
-            {
-                countdownTimer.Stop();
+                totalTime = (hours * 3600) + (minutes * 60) + seconds;
+                remainingTime = totalTime;
             }
 
-            // Ensure the UI is updated on every tick and when the timer finishes
-            InvokeAsync(StateHasChanged);
-        };
-        countdownTimer.Start();
+            // Start or resume the timer
+            countdownTimer = new System.Timers.Timer(1000); // 1 second interval
+            countdownTimer.Elapsed += (sender, e) =>
+            {
+                if (remainingTime > 0)
+                {
+                    remainingTime--;
+                    progress = (double)remainingTime / totalTime * 100;
+                }
+                else
+                {
+                    countdownTimer.Stop();
+                }
+
+                // Ensure the UI is updated
+                InvokeAsync(StateHasChanged);
+            };
+            countdownTimer.Start();
+        }
+
+        isPaused = !isPaused; // Toggle the timer state
     }
 
     // Reset the timer
@@ -741,13 +757,20 @@ else{
         progress = 100;
         remainingTime = 0;
         countdownTimer?.Stop();
+        isPaused = false;
+        InvokeAsync(StateHasChanged);
     }
 
 	// Get the gradient for the circular progress bar
-    private string GetProgressGradient(int totalSeconds)
+    private string GetProgressGradient()
     {
-        double progress = totalSeconds > 0 ? (double)remainingTime / totalSeconds * 100 : 0;
-        return $"conic-gradient(#4caf50 {progress}%, #e0e0e0 {progress}% 100%)";
+        double progressPercentage = totalTime > 0 ? (double)remainingTime / totalTime * 100 : 0;
+
+        // Use blue when running, and orange when paused
+        string progressColor = isPaused ? "#4caf50" : "#ffc107"; // Blue when running, orange when paused
+
+        // Ensure the gradient is properly set
+        return $"conic-gradient({progressColor} {progressPercentage}%, #e0e0e0 {progressPercentage}% 100%)";
     }
 
 	// Create Task Model
