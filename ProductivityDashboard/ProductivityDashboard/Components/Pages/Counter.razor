@@ -257,11 +257,11 @@ else{
         }
 
         <div style="text-align: left;">
-            <h1 style="color: black; font-size: 36px; margin-bottom: 5px;"><strong>Good morning, @userName! </strong></h1>
+            <h1 style="color: black; font-size: 36px; margin-bottom: 5px;"><strong>@greeting, @userName! @emoji</strong></h1>
             <h2 style="font-size: 24px; margin-bottom: 10px;">My Productivity Dashboard</h2>
-    </div>
+        </div>
 
-        <div class="container mt-4">
+        <div class="container mt-4">    
             <div class="d-flex justify-content-end">
                 <div class="form-group mb-0 d-flex align-items-center">
                     <div class="me-2 col-md-4">
@@ -279,14 +279,7 @@ else{
 
     </div>
 
-   @*  <!-- Main heading -->
-    <h1 style="font-size: 36px; margin-bottom: 5px;"><strong>My Productivity Dashboard</strong></h1>
-
-    <!-- Greeting with the user's name -->
-    <h2 style="font-size: 24px; margin-bottom: 30px;">Good morning, @userName! What's the plan today?</h2>  *@
-
     <hr style="border: 1px solid #ccc; margin-bottom: 20px;">
-
 
     <!-- Add Back To Top Button -->
     <button class="btn btn-success back-to-top" @onclick="BackToTop">^</button>
@@ -389,7 +382,7 @@ else{
             </div>
 
             <div class="add-task mb-5">
-                <h5>Add New Task</h5>
+                <h5><strong>Add New Task</strong></h5>
                 <form class="form-inline">
                     <div class="form-group mr-2">
                         <input type="text" class="form-control mb-2" placeholder="Title*" @bind="newTaskTitle" name="add-task" autocomplete="on" />
@@ -408,46 +401,58 @@ else{
             </div>
 
             <div class="accordion" id="taskAccordion">
-                <h5>My Task List</h5>
-                @foreach (var task in tasksBusiness.GetTasks())
+                <h5><strong>My Task List</strong></h5>
+
+                @if (tasksBusiness.GetTasks().Any())
                 {
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading@task.Id">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@task.Id" aria-expanded="false" aria-controls="collapse@task.Id">
-                                <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
-                                @if (task.IsCompleted && task.CompletedDate != null)
-                                {
-                                    <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
-                                }
-                            </button>
-                        </h2>
-                        <div id="collapse@task.Id" class="accordion-collapse collapse show" aria-labelledby="heading@task.Id" data-bs-parent="#taskAccordion">
-                            <div class="accordion-body">
-                                @if (task.Id == editTaskId)
-                                {
-                                    <!-- Edit Mode -->
-                                    <form class="form-inline">
-                                        <div class="form-group mr-2">
-                                            <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
-                                        </div>
-                                        <div class="form-group">
-                                            <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
-                                        </div>
-                                        <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
-                                        <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <!-- Regular View Mode -->
-                                    <p>@task.Description</p>
-                                    <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
-                                    <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
-                                }
+                    @foreach (var task in tasksBusiness.GetTasks())
+                    {
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading@task.Id">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@task.Id" aria-expanded="false" aria-controls="collapse@task.Id">
+                                    <input type="checkbox" @onchange="() => MarkTaskCompleted(task.Id)" /> @task.Title
+                                    @if (task.IsCompleted && task.CompletedDate != null)
+                                    {
+                                        <span>(Completed on @task.CompletedDate?.ToString("MMMM dd yyyy hh:mm:ss"))</span>
+                                    }
+                                </button>
+                            </h2>
+                            <div id="collapse@task.Id" class="accordion-collapse collapse show" aria-labelledby="heading@task.Id" data-bs-parent="#taskAccordion">
+                                <div class="accordion-body">
+                                    @if (task.Id == editTaskId)
+                                    {
+                                        <!-- Edit Mode -->
+                                        <form class="form-inline">
+                                            <div class="form-group mr-2">
+                                                <input type="text" class="form-control" placeholder="Edit Title" @bind="editTaskTitle" name="edit-title" autocomplete="on" />
+                                            </div>
+                                            <div class="form-group">
+                                                <textarea class="form-control" placeholder="Edit Description" @bind="editTaskDescription" name="edit-desc" autocomplete="on" />
+                                            </div>
+                                            <button type="button" class="btn btn-success" @onclick="SaveTaskEdit">Save</button>
+                                            <button type="button" class="btn btn-danger" @onclick="CancelEdit">Cancel</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- Regular View Mode -->
+                                        <p>@task.Description</p>
+                                        <button type="button" class="btn btn-primary" @onclick="() => StartEditTask(task.Id, task.Title, task.Description)">Edit</button>
+                                        <button type="button" class="btn btn-danger" @onclick="() => DeleteTask(task.Id)">Delete</button>
+                                    }
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
+                else
+                {
+                    <!-- Message to display when no tasks are present -->
+                    <p style="font-size: 18px; color: gray;">
+                        No tasks have been added yet. Start by creating a new task!
+                    </p>
+                }
+
             </div>
         </div>
     }
@@ -461,6 +466,8 @@ else{
     private bool nameAlert = false;
     private bool isLoading = false;
 
+    private string greeting = "";
+    private string emoji = "";
     private bool isTaskSectionVisible = false; // State to control the visibility of the task section
     private double temperature;
     private double? result;
@@ -529,11 +536,33 @@ else{
         timer.Elapsed += UpdateTime; // This will pass both sender and ElapsedEventArgs to the method
         timer.Start();
 
+        SetGreeting();
         result = 0;  // Set an initial temperature value
         resultUnit = "°C";  // Set the default unit
     }
 
     private void UpdateTime(object? sender, System.Timers.ElapsedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private void SetGreeting()
+    {
+        var currentHour = DateTime.Now.Hour;
+
+        if (currentHour < 12)
+        {
+            greeting = "Good morning";
+            emoji = "☀🔆";
+        }
+        else if (currentHour >= 12 && currentHour < 18)
+        {
+            greeting = "Good afternoon";
+            emoji = "🌤☕";
+        }
+        else
+        {
+            greeting = "Good evening";
+            emoji = "🌜✨";
+        }
+    }
 
     private void UpdateTemperature(ChangeEventArgs e)
     {
